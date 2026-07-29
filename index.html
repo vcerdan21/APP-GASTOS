@@ -130,9 +130,9 @@ h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-.035em;
 .lg .e{color:var(--tx3);font-size:11.5px;font-variant-numeric:tabular-nums;min-width:62px;text-align:right}
 
 /* barras meses */
-.bars{display:flex;align-items:flex-end;gap:7px;height:132px;padding-top:8px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:150px;padding-top:8px}
 .bw{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
-.bstack{width:100%;height:112px;display:flex;flex-direction:column;justify-content:flex-end;gap:3px}
+.bstack{width:100%;height:100px;display:flex;flex-direction:column;justify-content:flex-end;gap:3px}
 .bg1,.bg2{width:100%;border-radius:6px 6px 3px 3px;height:0;transition:height .9s cubic-bezier(.22,1,.36,1)}
 .bg1{background:var(--grad);box-shadow:0 0 16px rgba(0,224,143,.28)}
 .bw.sel .bg1{background:var(--gradv);box-shadow:0 0 18px rgba(236,72,153,.4)}
@@ -152,7 +152,7 @@ tbody tr.tot{border-top:1.5px solid rgba(255,255,255,.2);font-weight:800}
 .hm{border-radius:7px;padding:4px 6px;display:inline-block;min-width:52px}
 
 /* line chart */
-.lch{width:100%;height:150px;overflow:visible}
+.lch{width:100%;height:auto;display:block;overflow:visible}
 .lch path.ln{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
   stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 1.5s cubic-bezier(.22,1,.36,1) forwards}
 @keyframes draw{to{stroke-dashoffset:0}}
@@ -230,6 +230,44 @@ nav button:active{transform:scale(.9)}
 .lkf{font-size:11px;color:var(--tx3);margin-top:16px;line-height:1.6}
 .dayh{font-size:11px;font-weight:750;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin:16px 0 2px}
 .mini{font-size:12px;color:var(--tx3)}
+/* leyendas de graficos */
+.lgd{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:10px;font-size:11.5px;color:var(--tx2);font-weight:600}
+.lgi{display:inline-flex;align-items:center;gap:6px}
+.lgi .e{color:var(--tx3);font-variant-numeric:tabular-nums}
+.bv{font-size:9.5px;color:var(--tx3);font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.bw.sel .bv{color:var(--tx)}
+/* selector segmentado */
+.seg{display:flex;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:5px;margin-bottom:14px}
+.seg button{flex:1;border:0;background:0;color:var(--tx2);font-family:inherit;font-size:13px;font-weight:700;
+  padding:10px 6px;border-radius:12px;cursor:pointer;transition:.25s}
+.seg button.on{background:var(--grad);color:#04120c;box-shadow:0 6px 18px rgba(0,224,143,.25)}
+.seg button:active{transform:scale(.96)}
+/* pickers de categoria */
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pk{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:14px;cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--tx2);
+  font-family:inherit;font-size:13.5px;font-weight:650;transition:.2s;line-height:1.2}
+.pk i{font-style:normal;font-size:16px;line-height:1}
+.pk:active{transform:scale(.94)}
+.pk.on{color:#fff;border-color:var(--pc,#00e08f);background:rgba(255,255,255,.11);
+  box-shadow:0 0 0 1px var(--pc,#00e08f) inset,0 5px 18px rgba(0,0,0,.3)}
+.pk.nw{border-style:dashed;color:var(--tx3)}
+/* tags de subcategorias */
+.tags{display:flex;flex-wrap:wrap;gap:7px}
+.tg{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid var(--line);
+  border-radius:12px;padding:7px 11px;font-size:13px;font-weight:600}
+.tg b{color:var(--tx3);cursor:pointer;font-size:12px;padding:0 1px}
+.tg b:active{color:#ff8a97}
+/* sheet */
+.shbk{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);
+  border:1px solid var(--line);color:var(--tx2);font-family:inherit;font-size:13px;font-weight:700;
+  padding:8px 15px;border-radius:99px;cursor:pointer;margin-bottom:14px}
+.shbk:active{transform:scale(.94)}
+.sht{font-size:19px;font-weight:800;letter-spacing:-.03em;margin:2px 0 16px}
+textarea{min-height:140px;resize:vertical;line-height:1.55;font-size:15px}
+.pv{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.055);font-size:13.5px}
+.pv:last-of-type{border-bottom:0}
+.pv.bad{color:#ff8a97;font-size:12.5px}
 </style>
 </head>
 <body>
@@ -273,17 +311,17 @@ nav button:active{transform:scale(.9)}
 <div class="toast" id="toast"></div>
 
 <script>
-const SEED = /*S*/null/*/S*/;
-const ENC = /*E*/{"s":"DUWiJHaYIpnndgMYUAbGFg==","i":"KmJk1maX0bTbkszI","d":"UqIMoRWAYHMMlanEdFxOKgYg47Ij+wMz1rF0YiAS4QwtOWaiC2svf9GE7YXTmzKAe1qWfuW/tWV4NCYorloDbPLp0C5JqMelw+44WLV2ZH1H3UhmVtIC3M4ezmhJzTpAiCfbJ+0FzLZXVCTeB+JQfEdOh3SgQtcHxyfgoCiLih5HDd6yRkUZlFY4Jmni17g14F5Q2qUjIH5AD0oT8Jr2ztox2R2W9rzyghSAJGlRbWk1K7VkAIUVVBCfhtpLSehH0zWuD2gqgDKLHUixeHPKf+iwBX0sI6cLyZwqxTflbqIs0EHgLN1PYkdZ76J97jLQsuhgF1bzTPcdFjuf09lGzrhH/I259Oz2eXpw3jH2X0Be9WHz131PnlqBXC6tEOzpez3GBYMIzTNiHglm/qmdY2lxjcpq+HiPcHoVlsanqzK9PlcEFk9tu6uSBdsN838WFGbq4LKfq5np+APwtSkwG0p5BVZozdrVsVkx1gSRJU76TLVhUJe2dD+yCd4aPNp8EUuP/TlhNZWsz8Ef6eC0RRcTwW/Q41dRtvqQuwx6ouXFAwwVxRZtUu98iW2/joUECzTIVbfkX3SFCKrv5apbIak5DGqFkyXkZTbLNGZqlsD5mEtkKy3BfIOqouQFMyBYGIx0uMHLIyhtoDfrreYkcQuUPlk3bkqeErP/MYfCZMMgsiF1bdihBeotwGl85CCZXo5XlGQfHrd8kR/4k4h3uJwYKkWLaE/Toe0lHmbuIE+OU/xSkGW3W/+m7g/b5EDN4jeQisfkfNm4BoNUF+hdebReY6O0Izjll7sR3g4azCPI2S5QgEWW2N408VDMcf/8G9w8reiHli67u5eyx/rgGYnw61r6ncc8X+0k+QFwO11h/W49d2i6xbOmgrIXkXFHNkiqC2tqeLk9aOtbO5OavsVeN+ErtyB3ovztM+cgzXgUs3uXFcooUc2Zwm0Tt8hL37329QMOi780BdNlgvmC8kKTZVcmlalVKmqwSG6UPsxkYpzYdkVdHsrqGIiuQWfifIhc082IXPV74WjO269tcAHFQPbP5S0Zl8ACuwv5VsUTXcU5N/RtJKI+ek+xG2/uLj73ImRGJv0Ue1wQAcw++GOlO6ldFgWBxqzYJXiVUghYQJZK7+mLoIARsEduHkSLOK/ROtOWaf0eZJEVcUEs6ZtYQWot3vlLKizi/PZGFnfGgIr3GBV3mRFai4Im7sgH9ivUDLwda1Cqdn/hlMOJtvZBfCUd9/DVbOUictumKG8piK36dL1xkfN/Mdd+MnnHs0tsfx/FAcw3RgSJ2IE5N70oiBm4S6n7wwHC6pcKA5j/5ttggWUd6/Qi3+997W3OgyRi3UHFvkaXKBtnxspSRZpN6m2fw7xmoiIR6pNQG8dr7kpuABV+Cc5fILXybouYxeDrx44GiMbnSQF90xahufiPrlPBqBdj/TuvtLUbjvT0APeGeRIO15k7mAj9au1U+QUlbvq0GXS4jHjPpxqOq7P3s6Qjz7+qlKiYPpBxJZEgQMv4AmDoTqmjYUbElMmcnqxfJsMQaC4G82lbw+m16Ch5puG9sq3pc9zcpkydNkekLZ168FFlIZMKocZkMqLx+r46n+BWkW7DFf4aX/wJB882mhiuRqF/DXdsAE0yd/HY/NN7XHNfoeTOuRRLi7skJK6mRbl7KwTzGaEgo3F8/cCucjw42+HtcNVhcjganlHBYYCKi+fSwOuTdBSonA6F/AGMU5LRSDP2WiHfnArNvbtHMuIm/n5F3p1PaQjNqakiLObOflWyTWDks47VTDooavnnVFY0NiYjbhd+bVo81iv79WRrEMSKjDVVRdQzHhGrI8Y1RDgJoMyextY5IcJsvH32WcJKb6+JqIpLcfQJgNOoOYBtXMU8Ne+3SOv2zyxXOP3dp5GHm3IBhpqa7fthm9dWXmFqvNHWAYqPEo/oR0Wq6VynnCMBJbH1O8RF3x4Fpm6EgKjX4muuEdv3x2utQyR5P6Jk1h9i9aa2cnD/lGap68IgtMbyiH9pfIMaocq0/WK79fO1M774mtmySNOMte+rmcZrhjfr8Ll/EMkRS64A2bVw925Y3vcVvBbzF4psdVE36clbHmLCRIhOEvHfsnGzCoyftVa57jjWAecuragaXDXBxv5zwd6MF7IhziHW8KUmSeJsU12875hcoaJETb19sBngzOWA/bOXI+pW2ecMyuzvTaJaqBPCCjbGAUvVPgsMewn59k4ASZxRFUSOmmM8kaQgwOWlvBU/2zAD5PczPpcQIMEdIvZEGUsnTmzNhTG35ejtBUxcuaP7aNH7KneVgq/zQBqaRxhYiBpPT/azo+8boCRTWLvGV9IEdgmJ1udzBrVXJW7JM0b49ywmjR19/Xa9KzshpqJcJA6NSF2SF8LNn93zkV3oQZLioZb85T6AiBEeHK016gHFyIDqq+lJpv6c4itEMVQBv0EDzOVSZN0ESjENlYTrxU4gbclxJ+g9UM6k39Uh1sKa3++ut+C57o2a8VYDX6K95XxH4kZMvxyfbcyFfhlsKzcSp6nBzUHEzeyn05+n6hTN9OQC/AkHzW7JjQ+omBnmiLy6O1QBCfjfPqWRGfnVFMsE2EUY7HFC3mok+IGAT9WDmNkCX6kHUuylwK8njj9iZXwN6J6Nz35RpeuydTqUVhZZnehfT8oh0e+zU1J3TM7RmrAHA6xqeIs03uOyjSeEJk1wG/0Nwim2291LgMA8cY2zixWzWGEHEd167BVT+oCCgv7X6ryTDsr5nT0IPFjujijuI872uKCOFcTW8j65q7NGFncMKxf+fDl+JzyBZmZHg7a+1Ej5Zj09zXk67Kl/WHr1t2OnnMObvXvcR8HtIcEUupF9zdCtc7oDJOxeAn6yOgGu9L5UaIqvuVG8KVMfzAk6jlZ9bWyftBPg5Y6VYs1IN5xlTgHgRPhajfyxTw+nL/c372BEgVIREmCicOyE7+sHE6q/5tQVpR/GqjapiIQt1ORppEwf4YWcpWQyHOev1l4ZI68Cc1PjJQGSiWDsu6FYYTY6WH3hy2vdVqB90n7Ex6OWRcyanrHWeljZ0+gYVRiNG23PxsWkTpaiCzdq6MJc4yNB85s3BWHiGBthZHIhJjLv8MZCCGeHmm8yduUJv9hFiCSKp7VdG9ud+RsyxGpdRBdaK1k830BL3jy/NPbTzltX588tlwpBCFsTFBqXrxfd/lQOvVzsoZaYSInVNRVZREf5+mqWsvFBDImtIXZ/Qk0Z7V/UQ/dimnv3RQOhYBsd6FT2eWt3ysjMElC0051SLCjtiLDxDaRN9UgUt7lEtlkxmyDRos6kb3mPgG+AVr0jAwTAeobNvIm27C2kFzgjfanuVWoOt0/bHQ0HPb5KF81j5hMnIgUetICtSdJnosndhzFrXyc1hwl5N+E38x5pdzHjoGycRuNAotbQ/KQ17jeM60TaGWyN5dasH2E8IAhRF0bMcvM3srWiYRxkoeZUQAzX8Wj2r7fuOxgDpEljbc+LCqkHZisCORXC6YqEWIX8bdGRk6dZsoUD+7E5SBm/1WRXJ+JAUBycD5AEd2StSuZvzjL/kheaBrbTHOt98MUWB7G52Q7S/bLBhSnIaHymB7abMYFSVsKUjvBrZsOtzGZGKCdfykuZKT7zyTRttWM2HKFuvYbzW6os8zrBLJnT+8CSJiJMEF7Xm482jpLldkL4FaKBK5IUqTsAPeANDnXLeUVTvBx8zTAAO8UDs2zSJ3wN7GKgiSDefXS1sT5KuMADdtnFTqnhhtzBoBzFthUk50DTHLQ+sIkKCjQ9MB0BndMpBiCAVQvBUGOQX54zITiCC9AJGOeecxbjukvlVhnXpVdnogRrk2s1qjEkLch4jaOkgI0IFha0YWAOyYVZN9OkVD/av17f3qmUIcLqteHZ6eT7kxIqZ0GMvyOSO23p2cd09OZT5BVhNmbzoKHrtUgTNYZKAdleOaOhAqbmQYtGdaPUiwbXvxfEB/GIDVdObwdZDaWBle1lunjHM+7HvAa8q8ZXngUiGvcr9jyiUI+ifuVKqqNWWQUiORl5RnPHS9RJZImaOHKOfQQ+29+Qv4hvfKxiw0B6RfOexiH9DnVXlJLRMflabd82og7GicOmfF1wwo5PWYmx2/zn/vKvUTFng+jcTR/OXXe83KJTrYPO+FzvlgS32WLpBLJFjihg9JSFEyLrwJSCXsN8xSy8SW0uZF3MvndA46xIlVOv7CULZsol0PuEy307ds2lt0an113gBR3B9veYZXO/UWED9ER+Wjanp9yxl8svjqkzjaAAJg45ByUC7Ct0nSEc7VP+8nzv40ploPW3XzE7gB3bZfIk5PTyg78hY0zN7NnQ2pDsbMDnUg+EQCk7HionMtEv4dv19o+3zT93PTTgRIF3IyMo5GnEXx6fKeoLQVsZIlJv0DkUXZwnM+wuudLRJ5P49FGl8MksXG2nDYHwmLnOG7TsUu1Ld/UXnoR+uL+ydhjPEuetGcDSoO4P1EO7nwou/A6o25boWvpcRyP9Oe3o6dA0P46RRR2W5MAok7RZx2kqJLMD7ZdZiISMIWcMdKGJT0+HLT2fOAgQb/jzM36pVOZuJmvBAMBHr8+KjJLvGXCluorXGA3/o6QYWAMkU8jV8XepI+l/OTf68P07j578wC9bEyUDl3joc4+3eM/XUF2UUm0TuOpd4670Va/LRB5HGs5uj96qI/ISU1v4oi8+kUpnTbzLpiUS9J9ieF7kNh0lTavq0OtvzzSy9j2J76DtSo5trqZ/UD/SIv9bw67MxlDkPbL2tXqK7BpBxxIT1/LOZr3arb2ms+tA/htaRDb+DLjTmClwA4NqLCZPy2/23Ul43krN8ncT6Q/rBluSB9W46CrIMD6neOIWkoOEY+c2rOzCoVNO+K+hZSRN8DvyggkqZft3LighO4SWGk+P1J9lXuJIjDiQCwo/PBhh4ty4jtENkmWtpQK06RUvtbcGYXXs3PAV6mco6skfQimxpuKAOPWAKNMn3Z8eMnSmPC5+j+yqsFoZ4jPZPcsTjSz/fnrycR/BNBDLIGnxeoFpc7P/oIiBeHgqvTjy7Lw2h/7T6yyQoTyv9JsLAcgPbPIpm42vR39AeGcxcUa5viz9FWD970Db0IB7msqPwyl+t3WwlAF6nyzSz2B8Yomov2ZOhp/4DXLwya8nofuLicLGoky3mRVqBD8534+0EED0aXVvJ3PHaIfxIQ+4c07zTcPI+LMo+9lxzpan0wutCl5olfjLdAZH8qKkhEUS/sCe9QGluWcWZqsI2KFCwDmWWshjDIfnvlAsyZTCJZjV2puc8r7hRrSa4/ySoRg7dYLKc4Vnhqup/3FnhpzpDIcczN4jy03oph4WfZwAlWBtZU3yNQdGaAqWR4kkPbzYutN73xbEr4RXBJkwTaqwsl2ZR1HciCMeLGSBJ3AGkjfOrrldpz569NUDBsMU8YdJGBvUxq1wz9EWYltWZbSRtbBMKlFB5vZKvCCaIk7sp9/maXbAZmJ1EO/c6koNERxum/T4kfDb8NNNztXF2JixuuRmGNv5oh8ZkATobTyqf8rWFIXLDg21/pLDKawAii30KfzREq4qjrSLvw24OTAKUhFDS4c8K7RgYV/wp6OjwtxXx2R9ocI72oRuqykm4/qp89yk6sk32DyJfSL7hQ/3l+2tR/fg05aySGqd6wUSTBCAsgAlhcGLFu3IBlQXPN1ovQt7nPt0OfHPTPuSM+Ia1Tj2ze/RPare5/uMfvOCS3YkdXMQBm6g5EvypL8SspfbH/1lWwC24MQby6dMWH0Yu5icAhT9eteHa4jwR6QBq78LMrnsfOKcj+vUacP1lPVRzDPLiQuiRSYl2O9pHF8dUjXhsy8IHPF8hl6jcV3eBLsalA1V14cwDAFYh8ejcDq14AFGi2FCJBiJK9ABVGSfX5v2yXqEfykt1oGImIuO7Kaimk7By/9gsNLdgprPjxkElXa1beDDNig5K/7yA/gIqlA8mG+F9vnDzS23CUuKkWHq5SKJui8dSR2Lj4BF9P/9C8ZADbf9jNARSIZT9EWmq6mSFRHnQqWo7HrgsV5bkECT55E4hh3kt7c1epPO8xzqu/ayBRaQUlEhEOSxd5phL/dWslv8RfRlL4/rWnzvemNUzPVrKgyWmutMKX6Y/BPi0hliH+zcw2fKEqBWp/KufdKyDSd4BhwF3R3dVgG3st9VjGBMu9PcwfWrLQR/98UFYc/kR7DxicxotrXYxTTFpniDpoPx6Dukmb5GYp8ooJjOsmVy6OSaadcaTy0ASHAxgtxdCgvbE2fpGH0IlWGd+5Emcj4HN0IqQnNWbz9ZIdCdZhU4Z64rql3tuzsKjUfgh2NtrOcDl3gY/SEHN7GpQTfuUKtO3HzPShCntJYZATX/HhsRK/28DmVml9E6TW8mVLcyc/HaZxK6Hkct3SJC/mPYy0O6z6y5JTiDmdoZcc6q+J9c/0IJpjgM2FV0Wmzqw2ZxZ0RWszH7yFcW3CM2kPwSeZq189YGMseXBrZTjBhDAd76lj49M7knOdEsvnOZopp0y1xOJ5kIX0f9d/CRWfHJX4BT7Xy/OVb3dXe5tAJ6q0iU8Na4ggb/oe8RoDq6HeAFJMVWssidT4fyHOdsIT8evCZEbZkQfNiaxJxasR3H2i8neEdPT88IklEOkGia3cxDlOMlFob9hIBuGNF7PyNpYRXEX2Omk+EFN4vWmwqqsVCG8JQcwFeJf6f4zmQOKvdccdCln0Ok8HsCH8oJUiq5sz6ROqGytVIsUHuikTkpevtvan0vHOIh7YsYAIJgggycrcgDs2C5dJ3rxCvRW8Sydt9sKQSGByCecssDSXBhP/o7DWILg7thO66BIbZ858DLS69/6IskyQqzcM5yu6MmrHFRJ437CW1e882rNdjjE4KiFMgkzlYLQcw/vobKHr+g190M0Qf5B0a7LWYO0l37Mpzn8+iOyOefUC2RjVu0t6DWsMXP5/VARp8uc+Ne68ohw1J0Eq7MuhxyrSoYDloxVorDLb1BgBKC2WHdnROoxyiH3StbohXjTyTHOAOgX1clun6lB6eLzkI9PHxnIGgXmOGu6YpOZgMMpFFkXjpZDPUNNKE1KWar7SirR/ni+thFM/iCXUp38+ORv2i3Vl78J1/7NlSE1uyei+CAhiQZaHmN165xQWMQuidAMYWyvIcvRLVMav6pMyf5tS+nGWBiPkpb9ZJ/zhVwe+KIvIzMWhhKYRM5oGbL0+rPtl90SiPAvecARhda9IWj1/6chya+HsOrUQqO5QBjAWrVJ/1Z+mft+49u5QFPjJSxm8FF+94gpIH0HQi2yfJIZLnul+CZsLn4rRsmhvz01fCdF5GY6OphX9sOo18xw/Qrl+dgWiV+ZBear07Igr9mYqpawD4e/qWA/h+Bpx0SPQ7qNl+Ds5QDg9aCgi3TFh4mboXnmcp+qPrpkYWtHKUhcJprSKoAc2YsrlZ30VKkW9iIGcIpMY6k72WEQ9Z7hXQ6IWJ41o8qbjnMuw4yEXzpN9iL/kpo58okAPuoVakuVPpdN/9/4okUyiinIXe7MUj6yz59gGL1D+XQ00AlalyndqCWA2Gp8SrZfTC2UwXGnQAonuM69mC53KE0m6zYxGqSZVzxeyd/UA1gdKsNtExuBO2+Agh3E2MYzYZ+QtwkDO4cKDbxDs4Tb8Rp9nu+E+CZ/m+MNbFZNMxTNsuQDZKkws+CxktCYde+JkYqMT+lLBmcT5si2kRxqYxuBEWVOc6MsuRBadES8+WNOeGLyIyGHOXp150QDP8QsaNgu/NWD5At3eAfdSEvujKN/GO4KZUuQi/AHFMCRhJUhhPEEtQFSEyxRU2pUX5/yj8zQtMi0aIW+Z3SnvtZlpuh+Bp0xxK/LA0VpQlidI9eDEtKaSw+9xqU+OjLZW1Vuv3LWlADNT3J9O9/mER6Oih/EY2Rxu2tb7P7ZFp/wxjlcvAa0yzd3V+n/cjDX9P8pF0+/yMdFxUXhbomyFFxuUQDU+UuJ1JeWeIs2Tfg5lfv9S5T6A1aml4XAgWFCXGBboPDnt78Wfp9NNbFcB3Z+R/Z0LZDsLy8YjUedkvzVejXEKmxYz5sImJ3LATZzXWeBwNSts12vZQuts4435StH0zFYABZVcx2EhsZwtbOGikl3Qxx/wpj4FHw6G+b+g/qtUPVzx9QhMhDtSPLXR36dlScyZhcArGxYatUfkIJJupB2XFQo5CCWdJJYtwPiZwdqebbr0NxTT3N2OXM4ymfCI1f9sSX0wGkH95ffFxiZWWFtfnAWKnP+d2DR7GI+NwN/3tytfN2qYwuh1rQDgR6n/winm6rhiJof9cHkzIYg576BbmsSS75Y9nQaDSKlcsMx1SVIqY2EiwPstYsJfHamPtzAWFlczfQO+OqLnMztAlop7Q9OWM/YF8BSOfoSph7eJtQ/TCZ/LP1RFy15v8fTU0+dNcZNEO+tWm4q2sJSTG0UqyHnZzJRwn/Q+o/0lEnw8/9UE6XXejn+n4+gmtu/4LCOPl93YJFGOuQjGMQuZImTuhJTENSJRG+bv622BC+6NwGfUHED4ijimCADyuWQCiuZ+1vpZGvv2VmgQbcuDziSXpsM6RVEq0/i3dEPItWab4FDAw7O5HouyBBcmwu92IVEPqPfsK5wxA9zZID9oK65o7UdvTR4U9ie7bHbhguK4ljZfb7wJzb8cwMBfSSuXUFpLS7ty6Ve1FQ0T3mKpfhV5PtXolWmZsoljCL8Ap/QtBRNS/E0eIawhBUs8AN+3JJtebcmiaTCLt+4mSKfQMA2I0YiI1GNEiMWS76DoL1hKqbtt449xtvCl1sCqujjYP7VmPbZXowQaCbu/dF9Tk3+xiXHE6FAIdkk17qg6NylOBUnMgflMOhZWxOOe4bgyy1RDHAS52IeIZLihIsF8gvN6bC7Fc+Krq7jDgqpRnbkuGptJBQrjA6dKyxakqQU7BhPxhKWafqXQIxe14DSwoTFtuSgnyL/RrH7eD3fY7oPWsOwCLimSKvrsfNypcHQVhlOV7NKtdaYEx4nsEXi/NOVzKwz0fhy0ncRMKM6i/sx3phtBerU/R1Qu0Fqe0/eGueveeBSUJFnYkXfRx1a962OINsj3ay+vNyqExZVITxN/Nv5gj3UDpEGUlP+oYmrrqJWtqELsaiC1VaJUhT/78MQ2B9sUX7forkT8aAfqE5GPrlib4jubJh2uELvc0TvAnZGY3t9sOZFtIwL1GxnEPBzqbDttIXr9iKpdWcN/pEXN+q0lqsClBLQEMy7t3YURmnf+oJcO/M6ys42bwH+yU0x4FF95rmFS03LAdTxkO70s2lxVWpsVADS0q/HnOTEu9kdAGTr6suKBpNg5Y0MX1Z3oK+IRCJ7OVOjYHNDM071g9PU5+vIv4ENvv1fGBlvZ67vXm8H/pxI5RRidQM+s10SdMWxPfmEFMZv33lSMvyEElKFnih232gpr8qgfEMniOVFbrrj0xQbC+LT+pLlC0l3ZJPy++bEkQA3TLUdKgQeqWq05wKQCPBaiwlh0WCQNtaFE8GS/uq0CUhTpQgUO1Mhdhbdzx65L98czC6lRt05BEki0mT7kQqhat+OuXCNpuQ+eRrvU56ec3oQd7CV8j6/osFItMRj0Hab6l7YHvL7aWELuz3fOEvociCR4S4RAUk7/s77h2OmJRJyl6KQGndR8AwFdDOgoYFHuqeH11BdSyX1r9U/jcknDNh4YAZvFOxzGnJEoOlxR30cIMN0IxE2atGKNwzuvqEyNsgbH3CLsQaHFWY/TwrxXpWPxpVWLciBU0G9o00WMpOGqufafJC9ScSU5yk4sJCkpQcTHCbESEh4b7wEs2dO0fRXLEMD9EsTDkYYsD+5asX1ARB9Qzbi7PwphvIpNUsh+BguUKMRvOTYnzoDXGtN3zBDpPjTlbJyltsDjdDz1WLVEkYwcwxN1JGtYQTCKKFDeWnjH7+mkVP2pSPZODSdFqC+DRc3tM5mMvLEW9LdUDi2vbUGy/thnEzDX6RwuvKlU7En9sBAf2go/wktl7I2PBZlivMy3GyWAX0fKH16NTG7OBxMlckzB04I8+ALyGV/8Mm0D/rVxKZKyXJexolwS8RDkEyUZFZe/miZXkcKhJBwnYZueWZE7lJUlwO3XApA/3r2tapTD/DCUqvwxLyibFhGfFZzXPRWtBT3XtaW0i5k8j4taI8e3zYXinyFZqKXX+0f/N99SyyG2Qa49oMZNrbn/dfCfwR/khUfIk2YK1Cq/fyUZRvqxeSxkP72fhmn9ErxRYJ1diqv3wm1wyQQ6CHIYQSNc7I2gf5CHTs7cJejnYat+e3HmmaI0Y6y2L12j01mlafan8wgesA5hyhYxA2uq7X3rrPy9WDWUiQnFvAYxrb4RoEnw6JXDbYIUVHq8N4pFF7ad4u96kcHaMCdvPtt9ZuQDNqZOUasgCxrCbzj5U2zKTwvpqz6Tec5apzi5nzsVBuGzFzd368COb0/2DcrfuLMArHr8s+9K3ImDSnh/Dp/eeUtw2awE02oWVHx5zrxBwKI5zWmbQQT9Qyypjl0tuHxyIaH+IBizVHx1D/Anv6JsPOr8qRxGxcmFx/m6FuEKHaHOU3VDYpWPh95QqVWAcc0hY5ZmrhqwrKMEEdZfqgzihZighJQomfWFosHGm8BxkyKdlSAP9dNfuhWHDZn7Y+nTPqvI4PCxfGGC3aIHqOtWPqSEelZC6UKVE7P1kutOIEBU6IQRbD8YeAUjc4iCjj+OiLDfJmoYCfsSih2y5UUhPXxYdHhFOfRxGskxvOqE6mDwRRnOXmIfv6MZNeYYMzorEGDdUxukBAr2LGc3lEJ/k907KlY7jQLDp+FlctCGYKxL3p5pqR967lcOysfrPfevwyYFAI2sFCx1H5DbdcBUMsg6imC1Ju2H5xb/npQOvfakf186fDHs6KneGjvndAORoirU38Q78KypY8JSbJh2qehmjek8tFSXPC9eJ+HV74OIsd9VooO1FpShjAnq3laVuG19ga3ucWOVjzQ6T2HodtPk8pcCGY9iZ2hc2lGMmX8epG0kgxyyUB8YhaWCrcwXhcWzFV5i4S7gOlFaiyDAXOdGkgupXi4a1XU9HxmKTPlqBZeh/KgIAE5fBWe4M1Tf9/on71hIu9rISfYvq6GAPqrdVbcoJmpfcMvYkCc+R1AhE8HCo1EzU7Z2nLaScZYH0BfWoWirA9wjL4Q8xM+IkSW0kLVXmYkLA+0Lrti4nSEiklkBHbDvlZLu9IzxHPZ7RXPFVO6FXPDbZjZIz/0db7sTvaFzTGcvA+M48EyPPEKGGoTY89dUggnLwDTc+qqJB/H+GFMszbK/saT8mXJw6PqYSyPqecbPODS4e+AvUAVh4Xywy8Je9S3MijjvAgJuBOB6Cf+uyMo2AaoFtzd4N9utxZe8R3V++o878VLd6UaWTVarQ1S0bN5K6xvQRrQw7s4rl56HHvJ1alBdiJuXWYmBHlWsS07wxIQH4eVMOP+SPKXdSFZLr1NyK7In+sb8t88ItydQkcTTU4uOMEfGQ+R3baJiQHSaCK+oFPSRq+i+xI3XtYQ4Qez4fhZNIL95xv3G2QsvNvegtPB1slJpSk2cHTZy+TvC6XD79+CYUMI0EFMQ3jaaPOZXep8Bev31EcfYyQJEwPNsjhTHddovu7343PNjGVACLb6o2QTTeuTBbUd1BZ7cPMZxUMyWJsHK5lTsHosGmCgGR6hao1PJgieeP4X/+XmJyet8Oy2KWVuSy+47PSUFQJdWahOYshW0/JQUp8FtZpVODhBpBLlKeeaWyvsV063jrrIpYOh8rNU4rO3pCCBW6APRtMTGfg5MsZKal9kFB/phMA4tr/2aW+lDT3JkuDozTXUJvZSes+k4VdyE5VJVMQAEqJ/AgvgvDThyiCMxcbUb5A4JTc+nAxq3jhPMNG02QKcxo0cs+SElRFuViOWvskPWB9VMT3eb0W/259CyrsXCAlco9s05f5YIxkzOHZ1LdtBuEvNqjCzv9Q3Sv/sGXOUfm1TUfmWyjMbNZY7R2VbKJ4uwINTLqf01ITKfrndcs8skfyskR6w3wEKYVdrFwBVm/iu2SjDn/181mS76f5/lUIKgh5/nP5gW/N5jybDEJHEDOtDE9T3qd/Mb7SY/xTTUwfNcQzNhCq9lcEjbh7cN4zp9+5ghsFHAYb+LVFeR9dSsMexzPkofNAPmh+P6+TuDpt+6iXgJnfzDqtrFWjtoDCpZ0fbOfrE0e5HSYiNsxuw+qv/zcAznJtkem1e+yAMlKURS1M3jgMegHmaT+cW1CUOceH5GwsSErFsCOfAiJRo299ZzdsdGIge7CLxz18TBFFxIGQBbLjxD9MWg8/VsLsb/rXZx+Pc5F2/+F0pwHItBnBBdoW+mvNMRxNeKVm+FQVFwxNsz2rBn3vqAyq06ZtU1AcI8jrt9ke5svnNCMe109O6YjklgNTh9du7ghB3OcH2CrTfKMVuv7dXtV2WKIh9OvXydc2yCfNPJwsi7KIXmmePqppKiGjz4y21z/Kt3fJVSP/Ce7H303sqezBu85Cd8Uf3ammlmySMd1499bp32LJJ1DPRno3QVj+M9WZ0UbtL2Tx9bfbkMEe3rKa+b1iBJEyECd4OZnx0PpLWOG50sOhOgA+h0YKrUDIysybphpb2LUXN3Faah4iTDia/v9JgxOGteB3MSFpNUlrV3r/dfxQDg37OJCfPlRWw6tBO/if2DYoLrqbvMhtGdYYa+6XADaXmKUN51vQyzDHCfiIoVeNbUzAoAAt5VcIy7z4x9MKSSixFYsWEWjuJCMKcxhjsdiHeVyBH+C3Lt+E+KI3fAENnus3F7+W2K8AjV6/T3kI0PLxBpBlihg0/SpIAzEmad+3UUmwDwkoOSWZebUMwOcpO0LsBuhLoToHtVh1uJ0q5tpG1u5aBIjqwChGHdg6utOcO4d3BYV/F3vBsEt7v1seLbloO2P97q2V8OdQzyh2S4Vff95LSKPfE2a3yWqLn6BDl66Su4rRwuYIoEsmvj6ISrNNI2IGDnVeaqXGn4EJMaRPDd+o6sdWCjY/cfq/Jk3qFbpOjl1bhPIePadjFdIvlC7377ULTqihoNUpWW17pm34F32lOa21q3QOPypGADfOhp3HgOz4zsYWdFlHBtzVlp1nwDIgBDHYh403tvonMQ/NoAJXoR8UYlMPNwjvrZhsd1k8V2YaaNwcyUV5/NzJQZEeRPVf2zCbH0uWxXqZibKaSurjUj1QgS3ScijzK56SETnOupcJfBniGdL1pliaWhzWYNgcabdBTEXm12PmYT1QXGDbgh+PFaPMEjTahpb/BLMX9FKLnvtx85v6XEh7tWU6wM7HsCSBZSy1zG71r366LzG4EfmWdwzdxUAIbeJI0UZlcABicPxc4RGwabGR2dQ6uaBfNOM1LjVJ67vxw4FWAnC3RiqF9f2VGHB0u44IL/P4NVGJx7Zd4xRG6d2oImAmp5/CQyzkYJkKNlH07nzFNfe8iGYV5CAFkiXm69d3ruIJa3NtJfKoLWcpSgCQlf7lCxOqDXBYZTmWNRni2PecDjcFw/sLL7tVkf/NgC0nwcu2pg5YhDtNvyPWkZRhzM6IhNp1fogWaWX21E1az8dTaUed+p8uU3EuJchtTvp5dfu6sNtoQwIsM7u9lJGx6Zq6ERB4uu5jkm4LEIWwh6SaT/xaaX0hnPd4zr6xS0kaGnuR0VH0/8bMGT24rctMyUnWB+wlOkyU4lgwj8aGBPmSKHc47Sn6+3sE1/lwVZZOrM1ChKzZeKdwPkiO5Z8H0kLOgEL3SH3VGv8zq8f1moa/0zE3Qd7PNqKmKMxnB3/MbpJACMZIZyRXlIeB3kr3e2ptYBBYex7pAqI+Ot/FKr34J04UJXMEbHxf91jezOTQFPRrKe2iMHh2oUlww+x3yk/vDTQ5L94BqemU9LY3+AYeEWRwMhQIa84Atg0Xup5hdIBeDWv6Mu6zvqh4O6kCGBrycFHELTqU5LUo8rxXqIjUyaem+dIUbRvXTgeredoajaZhMDaKyNTSxAnzS7qqz6jNforEWP3aokhSRgcrWSJDaboRBy+0pQzljlNxaLOs2XQXoBsh3wXUMNcAOa92zLArbUFdLGiQwNLacRYvg7s6S6FIfUfFlMQ0G4mcDvNhwDnq34ZK0wsdupxhjN1VTlcJ6mj/QO057K+pLRQSTeRRbDfgRKnd64hj/Cfq+yuPmZakrHUjFLWJnrg1r5FHLgBbBcdSYATJURSzHEV+Z4PAXRWk4THdHPF6z8d2KFH+qXlHtgv9Ea3rKt9fT9JGwltWvTYLHTx4VU38cmVB/l8hAm0F/mL1an2ynULLsera6Tsdrgtr1DNLRHVlICt81KgHUOhQxGGnDE7VbA5o/I9plzgrGBTGD1EpDHmkkbTvjcM6Ik4cDTKxoMRjc4PRdvgcA/o1H/231FDICesQ4aN5nrNF9dYy2TzDaf89TdzNMDyYRWwhWqPwKYMN3/1Kcj0bPn1wodXnsLX8kpg1KmXAx/7gCrhzkZ9j+QK5B5GoXE4jB6eN2V/e62Pxlgy+ESW7avrZkYRI7O4/Tyjt8lQl5ewVSwuA52zvAVTZAUUJthAz4uc9aHkOhvxeseGbfa+dX0SZt2tZVeAOrNs/j/8RfFXg9cwCUcZV7ohaarREYmDbzUQhNREWnisYFnX9ZYuIydrzd5gXdpHX0wfLXcumBLmXlk1jQCDbqGdnNLj3gVEdbY5OV+5WpWaQgg4h7YKLgeMyv0fztlihDxSNY+TzebZcQI9Ud0uPH8QSqAUr21WYhCC9K3NN+JI43hlGlDpXmR/tRcf4wVIZV6sxRYMGwxhRY9C7iLuv5DeM3WzkrVhXw+Rrbgcf4h3xqmpxBj/Dweov0N9Ta1gjrwA8IY/Bbu8CjUhubJfK8fXt4XY8F6bYMzh1pFC+uJiV/K390DT5PoB7Xn3JapLEWaVa9SbN9YiBAkadge8Xa0nL47MixSCFE103T8qaKpe1dfqlEYcGICvzTzy/XD8HpNlheTvK91SFrqTxcEc64C88de8Gp1ZD1zxYbKidIgjA1d74VSWOmjhrFWtLTC0RnXzkx2faxRbFmfuKVOPRH+I4cNWxI6FIoq+U2sO0i/9nXPCB28ZOGtoD8fg3s1i2yNIWZSt/CcFLUoVIy/L0Jc9GVek4zaJvRDgtwAPPr5KdkGzRUyPXPhnsAXqcjzsQr/FLeDM8xoNGc3nz7kA4gJTD3H/21mUC7u9ZHSgFlqudEf5PFfHFL9sb6s2X+iKT8arDosXBSau+9WbGEeHjaGx+4BqPZx5OE5iyePE50u0qAN3IzhDZ6ZTykKLbuDK1s7pi0xz56W+giCAnLu7mXwtWqemFJ3anwk/tFeuyF4oFwtOhxfAKajIkRiWfBOJY3B9kAY+o5FFd+eLEt5ZDSkZpnSxRkNITkL8/b1WZs5ce77MU6II35E31t/UaovBo8NlELCF0UisOO9/wfP68SqrTIuE0G+ozd1jIRBpAILV4pR/6ZQD55QikNY8sTk/bgxwq5gxKV1FR3Tdt2zusRhA9G7g4MuzrDu2hGL246ppPXpuU35BaW1JY71djgwOhMbfFpx9Ilsw3Y2gqLNrtl4gUxnomiY0YDZ1Q1ck21v/a3RLqRrnW5t1Urzj1NevTFJu7GIcp1jM96Om/sNx7dhzMUgQ2Sv1O0pigjOBcUAj2GwKX9QgTWwfT7vhtAKKP49+YyGPOcqBdTOkKaqO203l/uZOYpM8bp7oQiU5xKGbeMsF9en1RuJuiPSnmvlpzXc8luf7QtYURX3h2aWm4Hcap66LGDIcjB52tZtYfTA3sqJCZlsG6nSiDpxt/Hs7Sb8/X3/dEPtzjKi8HTpYva0c7ZkM/JUzkApzSsSpItVifQRSeEVhaZ2SFQSgMsELcKToBjKLl7ztHt5YyljlOnff7X9YIwS9WYBPJG4aBzSO/G9SWCqEGqcY7Rdt/Z+dE2URQxNefiRlFLA/4+Gf04fn/TMylnZ0YD86po5WSA0rypml/yTkuplAkl+5GJAw4Qxl6IVTi0grP071KXgD9a7KpPT4OWUMNl3QdL7Whyl/V1ipi+KuO14k8WLCqeXC7jnh/QPAuY1sPh7zGHWfakMRMT1AWPzV+Hf25ojqf0UnXX2GnYwdGTOmC/7Y1+fXW8UZTuG3odpnicBmIMwou5VNJ+c8L+3X9Z1fbduYxypjpVtAOCdqe47UyVz1mVwaQomxitt68+8MbGexo+ZICOo3QeJ24i82z2YnKL97nFG5mgAWf8UvNxJqogRjSW1yapjZeFjcRXYWDThjzXzDxdBm64x1OAzBmZMO3bJxz70X2H5dlQ0KW0PyVf4XdLJM+yOdKib4oLpj5nABO92YEBCBVa4F98DP6bwxTf5224ZsriulPq+SiJsaP6SSvWpdkesoFyMQSisbAZxdlhwHVt/wO/cqct++HpXtuyEErNLvpvH4FwOpWNdBrojlTxeJltzBm1yAaPxotVbjIhy/tfLg6OtNlSgMLR5R/wEgg0h1otTfiz3oUqRLL44MGahGKBX/YB5adIZ/xxGRmqPxAumFM3UiB/oyhCgxUHHw4P0cyz+4xFe9A+X0OqEgUXnqKgk407w9PWxcuo+5EKnN6ROMOwapd6KOzT2CGIg3MGPXLOP8fBcGIeQyFZq64WwV/6TlW2HT5gGQBb35gU8X7zREjV76BlsuACZGXygRsvZreNwfrKYcL68Ddse3GLmgRApAl27lke22tuhWF68+6q2gue9P1sy2vw4uLRWM6nlWoQHsQpNFdYDLOj1/n0D6pxXzQhx7uyvVoOvixAbVuw5xRrPeAugNqmGzS4nByk3oQU36krqwubN3HKHTOVDRAkHgkWt35nhYX6HksvCd5aPGm/TyUWz5tEvdWEoP2ErM/NYzZtDo6Ivh/TPgQc34sQqjEsYFQl3b9ACVj9qlHfacW44BQz8ul9HP8LI4jdUhr3J92/AYO8ImcVeEauXtISiAQNSJfWjTjK64p/JU0+b8wjzUd/qjqqOWvT+pXJ6SNqVtB2rYKLN7Pfx1zOXgK13hD2OiNlk0539UVCA+8gHb3zmv2spWDH1ok9RE5F0aJGSvXPvU9fMgI4pLsJdtH9/bQ"}/*/E*/;
+const SEED = /*S*/{"gastos":[{"d":"2026-01-31","c":"Efectivo","s":"Efectivo","t":"Gastos en efectivo del mes","a":210.0,"m":"2026-01"},{"d":"2026-01-31","c":"Transferencias","s":"Bizum","t":"Bizums del mes","a":192.0,"m":"2026-01"},{"d":"2026-01-31","c":"Play 5","s":"Play 5","t":"PlayStation 5","a":635.0,"m":"2026-01"},{"d":"2026-01-31","c":"Extra","s":"Extra","t":"Gastos extra del mes","a":162.0,"m":"2026-01"},{"d":"2026-01-31","c":"Ahorro","s":"Ahorro","t":"Ahorro del mes","a":100.0,"m":"2026-01"},{"d":"2026-02-28","c":"Alimentacion","s":"Cafe diario","t":"Cafes 0,45/0,55 x22","a":11.0,"m":"2026-02"},{"d":"2026-02-28","c":"Alimentacion","s":"Maquina","t":"Maquina x13","a":11.65,"m":"2026-02"},{"d":"2026-02-28","c":"Alimentacion","s":"Comida fuera","t":"Comidas (14+15+3+11+15+3)","a":61.0,"m":"2026-02"},{"d":"2026-02-28","c":"Tabaco","s":"Tabaco regular","t":"Tabaco x8","a":50.8,"m":"2026-02"},{"d":"2026-02-28","c":"Transporte","s":"Gasolina","t":"Gasolina (20+10+50+20+50)","a":150.0,"m":"2026-02"},{"d":"2026-02-28","c":"Deporte y Salud","s":"Gimnasio","t":"Gym","a":45.0,"m":"2026-02"},{"d":"2026-02-28","c":"Transferencias","s":"Bizum","t":"Bizums (23+2,62)","a":25.62,"m":"2026-02"},{"d":"2026-02-28","c":"Efectivo","s":"Efectivo","t":"Gastos en efectivo (10+251)","a":261.0,"m":"2026-02"},{"d":"2026-02-28","c":"Ahorro","s":"Ahorro","t":"Ahorro (100+100)","a":200.0,"m":"2026-02"},{"d":"2026-03-31","c":"Alimentacion","s":"Cafe diario","t":"Cafes 0,45-0,55 x24","a":12.5,"m":"2026-03"},{"d":"2026-03-31","c":"Alimentacion","s":"Maquina","t":"Maquina x5","a":4.55,"m":"2026-03"},{"d":"2026-03-31","c":"Alimentacion","s":"Comida fuera","t":"Comidas del mes","a":73.85,"m":"2026-03"},{"d":"2026-03-31","c":"Tabaco","s":"Tabaco regular","t":"Tabaco 6,25 x9","a":56.25,"m":"2026-03"},{"d":"2026-03-31","c":"Transporte","s":"Gasolina","t":"Gasolina (20+20+20+50+30+50)","a":190.0,"m":"2026-03"},{"d":"2026-03-31","c":"Deporte y Salud","s":"Gimnasio","t":"Gym","a":45.0,"m":"2026-03"},{"d":"2026-03-31","c":"Deporte y Salud","s":"Medico","t":"Medico","a":60.0,"m":"2026-03"},{"d":"2026-03-31","c":"Transferencias","s":"Bizum","t":"Bizums (7+3)","a":10.0,"m":"2026-03"},{"d":"2026-03-31","c":"Play 5","s":"Play 5","t":"Play (22,50+81,23)","a":103.73,"m":"2026-03"},{"d":"2026-03-31","c":"Ahorro","s":"Ahorro","t":"Ahorro (100+100)","a":200.0,"m":"2026-03"},{"d":"2026-03-31","c":"Extra","s":"Extra","t":"Extra (90+14+56,15)","a":160.15,"m":"2026-03"},{"d":"2026-03-31","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-03-31","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.5,"m":"2026-04"},{"d":"2026-03-31","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-03-31","c":"Tabaco","s":"Tabaco extra","t":"Tabaco extra mes","a":260.0,"m":"2026-04"},{"d":"2026-04-01","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-01","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":2.0,"m":"2026-04"},{"d":"2026-04-02","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-02","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":13.0,"m":"2026-04"},{"d":"2026-04-02","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-02","c":"Transporte","s":"Gasolina","t":"Repostaje","a":50.0,"m":"2026-04"},{"d":"2026-04-03","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.45,"m":"2026-04"},{"d":"2026-04-03","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-04","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.45,"m":"2026-04"},{"d":"2026-04-04","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-04","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-04","c":"Deporte y Salud","s":"Deportes ocasionales","t":"Escalar","a":10.9,"m":"2026-04"},{"d":"2026-04-05","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-05","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":5.0,"m":"2026-04"},{"d":"2026-04-06","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-06","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-06","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-07","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-07","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-08","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-08","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-08","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-09","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-09","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":4.5,"m":"2026-04"},{"d":"2026-04-09","c":"Transporte","s":"Gasolina","t":"Repostaje","a":20.0,"m":"2026-04"},{"d":"2026-04-10","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-10","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":12.5,"m":"2026-04"},{"d":"2026-04-10","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-11","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-11","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-11","c":"Deporte y Salud","s":"Deportes ocasionales","t":"Futbol","a":12.5,"m":"2026-04"},{"d":"2026-04-12","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-12","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":5.0,"m":"2026-04"},{"d":"2026-04-12","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-13","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-13","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":3.0,"m":"2026-04"},{"d":"2026-04-14","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-14","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":15.0,"m":"2026-04"},{"d":"2026-04-14","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-15","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-15","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-16","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-16","c":"Alimentacion","s":"Comida fuera","t":"Comida fuera","a":1.0,"m":"2026-04"},{"d":"2026-04-16","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-16","c":"Transporte","s":"Gasolina","t":"Repostaje","a":40.0,"m":"2026-04"},{"d":"2026-04-17","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-18","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.35,"m":"2026-04"},{"d":"2026-04-18","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-18","c":"Deporte y Salud","s":"Deportes ocasionales","t":"Futbol 5","a":5.0,"m":"2026-04"},{"d":"2026-04-19","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-20","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-20","c":"Tabaco","s":"Tabaco regular","t":"Paquete tabaco 6,25","a":6.25,"m":"2026-04"},{"d":"2026-04-21","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-22","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-04"},{"d":"2026-04-23","c":"Transporte","s":"Gasolina","t":"Repostaje","a":20.0,"m":"2026-04"},{"d":"2026-05-15","c":"Alimentacion","s":"Cafe diario","t":"Cafe 0,55 x22","a":12.1,"m":"2026-05"},{"d":"2026-05-15","c":"Alimentacion","s":"Cafe diario","t":"Cafe 0,50 x3","a":1.5,"m":"2026-05"},{"d":"2026-05-15","c":"Alimentacion","s":"Cafe diario","t":"Cafe 0,45 x6","a":2.7,"m":"2026-05"},{"d":"2026-05-15","c":"Alimentacion","s":"Maquina","t":"Maquina 0,80 x5","a":4.0,"m":"2026-05"},{"d":"2026-05-15","c":"Alimentacion","s":"Maquina","t":"Maquina 0,90 x11","a":9.9,"m":"2026-05"},{"d":"2026-05-15","c":"Alimentacion","s":"Maquina","t":"Maquina suelta","a":2.5,"m":"2026-05"},{"d":"2026-05-15","c":"Tabaco","s":"Tabaco regular","t":"Tabaco 6,25 x12","a":75.0,"m":"2026-05"},{"d":"2026-05-15","c":"Transporte","s":"Gasolina","t":"Gasolina mes","a":170.0,"m":"2026-05"},{"d":"2026-05-15","c":"Alimentacion","s":"Comida fuera","t":"Comida del mes","a":99.51,"m":"2026-05"},{"d":"2026-05-15","c":"Transferencias","s":"Bizum","t":"Bizum","a":10.0,"m":"2026-05"},{"d":"2026-05-15","c":"Deporte y Salud","s":"Gimnasio","t":"Gym","a":45.0,"m":"2026-05"},{"d":"2026-05-15","c":"Ocio","s":"Peluqueria","t":"Peluquero","a":14.0,"m":"2026-05"},{"d":"2026-05-15","c":"Otros","s":"Asesoria","t":"TFG","a":27.0,"m":"2026-05"},{"d":"2026-05-15","c":"Ocio","s":"Casino","t":"Casino","a":90.0,"m":"2026-05"},{"d":"2026-05-15","c":"Transporte","s":"Imprevistos coche","t":"Reparacion coche","a":954.0,"m":"2026-05"},{"d":"2026-06-21","c":"Alimentacion","s":"Cafe diario","t":"Cafe 0,55 x15","a":8.25,"m":"2026-06"},{"d":"2026-06-21","c":"Alimentacion","s":"Cafe diario","t":"Cafe suelto","a":0.45,"m":"2026-06"},{"d":"2026-06-21","c":"Alimentacion","s":"Maquina","t":"Maquina 0,90 x7","a":6.3,"m":"2026-06"},{"d":"2026-06-21","c":"Alimentacion","s":"Maquina","t":"Maquina suelta","a":2.8,"m":"2026-06"},{"d":"2026-06-21","c":"Tabaco","s":"Tabaco regular","t":"Tabaco 6,25 x8","a":50.0,"m":"2026-06"},{"d":"2026-06-21","c":"Transporte","s":"Gasolina","t":"Gasolina mes","a":150.0,"m":"2026-06"},{"d":"2026-06-21","c":"Alimentacion","s":"Comida fuera","t":"Comida del mes","a":100.95,"m":"2026-06"},{"d":"2026-06-21","c":"Deporte y Salud","s":"Gimnasio","t":"Gym","a":45.0,"m":"2026-06"},{"d":"2026-06-21","c":"Deporte y Salud","s":"Deportes ocasionales","t":"Deporte extra","a":23.0,"m":"2026-06"},{"d":"2026-06-21","c":"Transporte","s":"Transporte publico","t":"Eurorail (338+134+39)","a":511.0,"m":"2026-06"},{"d":"2026-06-21","c":"Tabaco","s":"Tabaco extra","t":"Tabaco extra mes","a":150.0,"m":"2026-06"},{"d":"2026-06-21","c":"Otros","s":"Regalos","t":"Regalo mama","a":150.0,"m":"2026-06"},{"d":"2026-06-21","c":"Otros","s":"Asesoria","t":"Asesoria","a":40.0,"m":"2026-06"},{"d":"2026-06-21","c":"Otros","s":"Imprevistos","t":"TFG","a":50.0,"m":"2026-06"},{"d":"2026-06-22","c":"Alimentacion","s":"Comida fuera","t":"Gasolinera","a":5.4,"m":"2026-06"},{"d":"2026-06-22","c":"Deporte y Salud","s":"Deportes ocasionales","t":"Botas futbol","a":47.0,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Comida fuera","t":"KFC","a":17.0,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Maquina","t":"Maquina","a":0.9,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Maquina","t":"Maquina","a":0.8,"m":"2026-06"},{"d":"2026-06-23","c":"Tabaco","s":"Tabaco regular","t":"Tabaco","a":6.25,"m":"2026-06"},{"d":"2026-06-23","c":"Tabaco","s":"Tabaco regular","t":"Tabaco","a":6.25,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Comida fuera","t":"Comida","a":10.5,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Maquina","t":"Maquina","a":0.8,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Cafe diario","t":"Cafe","a":0.55,"m":"2026-06"},{"d":"2026-06-23","c":"Alimentacion","s":"Comida fuera","t":"Comida","a":5.5,"m":"2026-06"},{"d":"2026-06-25","c":"Interrail","s":"Tren","t":"Interrail","a":271.0,"m":"2026-06"},{"d":"2026-06-25","c":"Ahorro","s":"Ahorro","t":"","a":1000.0,"m":"2026-06"},{"d":"2026-07-31","c":"Tabaco","s":"Tabaco regular","t":"Tabaco del mes","a":68.75,"m":"2026-07"},{"d":"2026-07-31","c":"Alimentacion","s":"Comida fuera","t":"Restaurante","a":67.5,"m":"2026-07"},{"d":"2026-07-31","c":"Alimentacion","s":"Maquina","t":"Comida y maquina","a":123.34,"m":"2026-07"},{"d":"2026-07-31","c":"Alimentacion","s":"Cafe diario","t":"Cafes","a":7.7,"m":"2026-07"},{"d":"2026-07-31","c":"Alimentacion","s":"Cafe diario","t":"Cafes","a":2.7,"m":"2026-07"},{"d":"2026-07-31","c":"Efectivo","s":"Efectivo","t":"Gastos en efectivo","a":20.0,"m":"2026-07"},{"d":"2026-07-31","c":"Transporte","s":"Gasolina","t":"Gasolina del mes","a":110.0,"m":"2026-07"},{"d":"2026-07-31","c":"Transporte","s":"Transporte publico","t":"Eurorail","a":525.0,"m":"2026-07"},{"d":"2026-07-31","c":"Play 5","s":"Play 5","t":"Play","a":20.0,"m":"2026-07"},{"d":"2026-07-31","c":"Ocio","s":"Suscripciones","t":"Claude","a":22.0,"m":"2026-07"},{"d":"2026-07-31","c":"Deporte y Salud","s":"Gimnasio","t":"Gym","a":45.0,"m":"2026-07"},{"d":"2026-07-31","c":"Ahorro","s":"Ahorro","t":"Ahorro del mes","a":1200.0,"m":"2026-07"},{"d":"2026-07-31","c":"Extra","s":"Extra","t":"Gastos extra del mes","a":58.0,"m":"2026-07"}],"ingresos":{"2026-01":1666,"2026-02":1791,"2026-03":2537,"2026-04":1600,"2026-05":1888,"2026-06":3409,"2026-07":3090},"cats":{"Alimentacion":["Cafe diario","Maquina","Comida fuera","Supermercado","Delivery"],"Tabaco":["Tabaco regular","Tabaco extra"],"Transporte":["Gasolina","Mantenimiento","Imprevistos coche","Parking","Transporte publico"],"Deporte y Salud":["Gimnasio","Deportes ocasionales","Farmacia","Medico"],"Ocio":["Bares y salidas","Casino","Peluqueria","Suscripciones","Hobbies"],"Otros":["Regalos","Asesoria","Donaciones","Imprevistos"],"Transferencias":["Bizum"],"Play 5":["Play 5"],"Ahorro":["Ahorro"],"Efectivo":["Efectivo"],"Extra":["Extra"],"Interrail":["Tren"]}}/*/S*/;
+const ENC = /*E*/null/*/E*/;
 let DATA = SEED;
 
 /* ============ estado ============ */
 const KEY='misgastos_v1';
 let DB=null;
 function load(){
-  try{const r=localStorage.getItem(KEY); if(r){DB=JSON.parse(r); return;}}catch(e){}
+  try{const r=localStorage.getItem(KEY); if(r){DB=JSON.parse(r); DB.icons=DB.icons||{}; return;}}catch(e){}
   const s=DATA||{gastos:[],ingresos:{},cats:{}};
-  DB={v:1,gastos:(s.gastos||[]).map((g,i)=>({id:'s'+i,...g})),ingresos:{...(s.ingresos||{})},cats:{...(s.cats||{})}};
+  DB={v:1,gastos:(s.gastos||[]).map((g,i)=>({id:'s'+i,...g})),ingresos:{...(s.ingresos||{})},cats:{...(s.cats||{})},icons:{...(s.icons||{})}};
   save();
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){toast('No se pudo guardar')}}
@@ -300,11 +338,20 @@ const mlabc=k=>{const[y,m]=k.split('-');return MESC[+m-1]};
 const CI={'Alimentacion':'🛒','Tabaco':'🚬','Transporte':'🚗','Deporte y Salud':'💪','Ocio':'🎉','Otros':'📦','Transferencias':'💸','Play 5':'🎮','Ahorro':'🏦','Efectivo':'💵','Extra':'✨','Interrail':'🚆','Vivienda':'🏠','Suscripciones':'📺'};
 const PAL=['#00e08f','#00c2ff','#8b5cf6','#ec4899','#f9a826','#ff5a6e','#38bdf8','#a3e635','#fb923c','#2dd4bf','#c084fc','#facc15','#f472b6','#60a5fa','#4ade80'];
 function ccolor(c){const ks=Object.keys(DB.cats);let i=ks.indexOf(c);if(i<0){let h=0;for(const ch of c)h=(h*31+ch.charCodeAt(0))|0;i=Math.abs(h)}return PAL[i%PAL.length]}
-function cicon(c){return CI[c]||'💠'}
+function cicon(c){return (DB&&DB.icons&&DB.icons[c])||CI[c]||'💠'}
 function months(){const s=new Set(DB.gastos.map(g=>g.m||mkey(g.d)));Object.keys(DB.ingresos).forEach(k=>s.add(k));return[...s].sort()}
 function gm(k){return DB.gastos.filter(g=>(g.m||mkey(g.d))===k)}
 function sum(a){return a.reduce((t,g)=>t+(+g.a||0),0)}
 function byCat(gs){const o={};gs.forEach(g=>o[g.c]=(o[g.c]||0)+(+g.a||0));return Object.entries(o).sort((a,b)=>b[1]-a[1])}
+/* Ahorro NO es gasto: se registra igual, pero cuenta como dinero ahorrado */
+const NOGASTO=['Ahorro'];
+const esAh=g=>NOGASTO.includes(g.c);
+function gmG(k){return gm(k).filter(g=>!esAh(g))}
+function gmA(k){return gm(k).filter(esAh)}
+function subList(c){return (DB.cats[c]&&DB.cats[c].length)?DB.cats[c].slice():[c]}
+function ensureCat(c,sb){if(!DB.cats[c])DB.cats[c]=[];if(sb&&sb!==c&&!DB.cats[c].includes(sb))DB.cats[c].push(sb)}
+function norm(x){return String(x==null?'':x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+const kfmt=n=>{n=+n||0;return n>=1000?(n/1000).toFixed(n>=10000?0:1).replace('.',',')+'k':String(Math.round(n))};
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2100)}
 function uid(){return 'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
 function anim(){requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -334,40 +381,55 @@ function donut(data,total,centro,sublabel){
     <div class="leg">${leg}</div>`;
 }
 function lineChart(series,labels){
-  const W=340,H=140,P=8,max=Math.max(1,...series.flatMap(s=>s.vals));
-  const x=i=>P+i*((W-2*P)/Math.max(1,labels.length-1));
-  const y=v=>H-P-(v/max)*(H-2*P);
-  let out='',dots='';
+  const W=340,H=162,PL=38,PR=10,PT=12,PB=26;
+  const max=Math.max(1,...series.flatMap(s=>s.vals));
+  const x=i=>PL+i*((W-PL-PR)/Math.max(1,labels.length-1));
+  const y=v=>H-PB-(v/max)*(H-PT-PB);
+  let out='',dots='',grid='',ejeY='',ejeX='';
+  for(let i=0;i<=3;i++){
+    const val=max*(1-i/3), yy=y(val);
+    grid+=`<line x1="${PL}" y1="${yy.toFixed(1)}" x2="${W-PR}" y2="${yy.toFixed(1)}" stroke="rgba(255,255,255,.06)"/>`;
+    ejeY+=`<text x="${PL-7}" y="${(yy+3.4).toFixed(1)}" text-anchor="end" font-size="9" fill="#5f6779" font-weight="700">${kfmt(val)}</text>`;
+  }
+  labels.forEach((l,i)=>{ejeX+=`<text x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="#5f6779" font-weight="700">${esc(l)}</text>`});
   series.forEach(s=>{
     const d=s.vals.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
     out+=`<path class="ln" d="${d}" stroke="${s.col}"/>`;
-    s.vals.forEach((v,i)=>dots+=`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.2" fill="${s.col}"/>`);
+    s.vals.forEach((v,i)=>dots+=`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.4" fill="${s.col}"><title>${esc(s.name||'')} ${esc(labels[i])}: ${eur(v)}</title></circle>`);
   });
-  let grid='';for(let i=0;i<=3;i++){const yy=P+i*((H-2*P)/3);grid+=`<line x1="${P}" y1="${yy}" x2="${W-P}" y2="${yy}" stroke="rgba(255,255,255,.05)"/>`}
-  const lb=labels.map((l,i)=>`<span style="flex:1;text-align:center">${l}</span>`).join('');
-  return `<svg class="lch" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${grid}${out}${dots}</svg>
-    <div style="display:flex;font-size:10px;color:var(--tx3);font-weight:700;margin-top:4px">${lb}</div>`;
+  const con=series.filter(s=>s.name);
+  const leg=con.map(s=>`<span class="lgi"><i class="dot" style="background:${s.col}"></i>${esc(s.name)}<span class="e">${eur0(s.vals.reduce((a,b)=>a+b,0))}</span></span>`).join('');
+  return `<svg class="lch" viewBox="0 0 ${W} ${H}">${grid}${ejeY}${ejeX}${out}${dots}</svg>
+    ${leg?`<div class="lgd">${leg}</div>`:''}
+    <div class="mini" style="margin-top:6px">Eje vertical en €${max>=1000?' (k = miles)':''} · toca un punto para ver el valor</div>`;
 }
-function monthBars(sel,onclick){
-  const ms=months(),max=Math.max(1,...ms.map(k=>sum(gm(k))));
-  return `<div class="bars">`+ms.map(k=>{const t=sum(gm(k)),h=Math.max(4,(t/max)*108);
-    return `<div class="bw ${k===sel?'sel':''}" data-mes="${k}">
+function monthBars(sel){
+  const ms=months(),vals=ms.map(k=>sum(gmG(k))),max=Math.max(1,...vals);
+  const med=vals.reduce((a,b)=>a+b,0)/Math.max(1,vals.length);
+  return `<div class="bars">`+ms.map((k,i)=>{const t=vals[i],h=Math.max(4,(t/max)*96);
+    return `<div class="bw ${k===sel?'sel':''}" data-mes="${k}" title="${mlab(k)}: ${eur(t)}">
+      <b class="bv">${kfmt(t)}</b>
       <div class="bstack"><div class="bg1" data-h="${h.toFixed(0)}"></div></div>
       <small>${mlabc(k)}</small></div>`}).join('')+`</div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-top:8px">
-      <span>Máx ${eur0(max)}</span><span>Media ${eur0(ms.reduce((t,k)=>t+sum(gm(k)),0)/Math.max(1,ms.length))}</span></div>`;
+    <div class="lgd">
+      <span class="lgi"><i class="dot" style="background:#00e08f"></i>Gasto real del mes (sin ahorro)</span>
+      <span class="lgi"><i class="dot" style="background:#8b5cf6"></i>Mes seleccionado</span>
+      <span class="lgi" style="margin-left:auto">Máx <span class="e">${eur0(max)}</span> · Media <span class="e">${eur0(med)}</span></span>
+    </div>
+    <div class="mini" style="margin-top:5px">Cifras en € (k = miles) · toca una barra para abrir el mes</div>`;
 }
 
 /* ============ vistas ============ */
 let SELMES=null, RANGO='todos';
+let ADD={c:null,s:null,modo:'rapido'}, LOTE=null, EDITC=null, ASKCB=null;
 
 function vInicio(){
   const ms=months(); const k=ms[ms.length-1];
-  const gs=gm(k),tot=sum(gs),ing=+DB.ingresos[k]||0,cats=byCat(gs);
-  const prev=ms[ms.length-2],tp=prev?sum(gm(prev)):0;
+  const gs=gmG(k),tot=sum(gs),aho=sum(gmA(k)),ing=+DB.ingresos[k]||0,cats=byCat(gs);
+  const prev=ms[ms.length-2],tp=prev?sum(gmG(prev)):0;
   const dif=tp?((tot-tp)/tp*100):0;
   const anio=ms.filter(x=>x.startsWith(k.slice(0,4)));
-  const totA=anio.reduce((t,x)=>t+sum(gm(x)),0), ingA=anio.reduce((t,x)=>t+(+DB.ingresos[x]||0),0);
+  const totA=anio.reduce((t,x)=>t+sum(gmG(x)),0), ahoA=anio.reduce((t,x)=>t+sum(gmA(x)),0), ingA=anio.reduce((t,x)=>t+(+DB.ingresos[x]||0),0);
   const ult=[...DB.gastos].sort((a,b)=>(b.d+b.id).localeCompare(a.d+a.id)).slice(0,6);
   document.getElementById('htit').textContent='Inicio';
   document.getElementById('hsub').textContent='Hola Victor 👋 · '+mlab(k);
@@ -378,14 +440,15 @@ function vInicio(){
      <div class="hrow">
        <div class="hbox"><span>Ingresos</span><b style="color:#4fe6ad">${eur0(ingA)}</b></div>
        <div class="hbox"><span>Gastos</span><b style="color:#ff8a97">${eur0(totA)}</b></div>
+       <div class="hbox"><span>Ahorrado</span><b style="color:#00c2ff">${eur0(ahoA)}</b></div>
      </div>
    </div>
 
    <div class="kpis">
      <div class="kpi"><span>Gasto ${mlabc(k)}</span><b>${eur0(tot)}</b>
        ${prev?`<div style="margin-top:6px"><i class="pill ${dif>=0?'up':'dn'}">${dif>=0?'▲':'▼'} ${Math.abs(dif).toFixed(0)}% vs ${mlabc(prev)}</i></div>`:''}</div>
-     <div class="kpi"><span>Media/mes</span><b>${eur0(totA/Math.max(1,anio.length))}</b>
-       <div style="margin-top:6px" class="mini">${anio.length} meses</div></div>
+     <div class="kpi"><span>Ahorrado ${mlabc(k)}</span><b style="color:#00c2ff">${eur0(aho)}</b>
+       <div style="margin-top:6px" class="mini">media gasto ${eur0(totA/Math.max(1,anio.length))}/mes</div></div>
    </div>
 
    <div class="card">
@@ -411,9 +474,10 @@ function vComparar(){
   document.getElementById('htit').textContent='Comparar';
   document.getElementById('hsub').textContent='Todas las categorías, mes a mes';
   const ms=months();
-  const cats=[...new Set(DB.gastos.map(g=>g.c))];
+  const cats=[...new Set(DB.gastos.filter(g=>!esAh(g)).map(g=>g.c))];
   const M={};cats.forEach(c=>M[c]=ms.map(k=>sum(gm(k).filter(g=>g.c===c))));
-  const tots=ms.map(k=>sum(gm(k)));
+  const tots=ms.map(k=>sum(gmG(k)));
+  const ahos=ms.map(k=>sum(gmA(k)));
   const orden=cats.map(c=>[c,M[c].reduce((a,b)=>a+b,0)]).sort((a,b)=>b[1]-a[1]);
   const maxCell=Math.max(1,...cats.flatMap(c=>M[c]));
   const top=orden.slice(0,4).map(([c])=>({name:c,col:ccolor(c),vals:M[c]}));
@@ -427,17 +491,21 @@ function vComparar(){
   return `<div class="stag">
    <div class="card">
      <div class="ttl">Gastos vs ingresos</div>
-     ${lineChart([{col:'#ff5a6e',vals:tots},{col:'#00e08f',vals:ing}],ms.map(mlabc))}
-     <div style="display:flex;gap:16px;margin-top:10px;font-size:12px">
-       <span><i class="dot" style="background:#00e08f;display:inline-block;margin-right:5px"></i>Ingresos</span>
-       <span><i class="dot" style="background:#ff5a6e;display:inline-block;margin-right:5px"></i>Gastos</span></div>
+     ${lineChart([{col:'#ff5a6e',vals:tots,name:'Gastos'},{col:'#00e08f',vals:ing,name:'Ingresos'}],ms.map(mlabc))}
    </div>
 
    <div class="card">
      <div class="ttl">Top categorías en el tiempo</div>
      ${lineChart(top,ms.map(mlabc))}
-     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px">
-       ${top.map(s=>`<span><i class="dot" style="background:${s.col};display:inline-block;margin-right:5px"></i>${esc(s.name)}</span>`).join('')}</div>
+   </div>
+
+   <div class="card">
+     <div class="ttl">Ahorro por mes 🏦</div>
+     <div class="mini" style="margin-bottom:10px">No cuenta como gasto: es dinero que apartas.</div>
+     ${lineChart([{col:'#00c2ff',vals:ahos,name:'Ahorro apartado'}],ms.map(mlabc))}
+     <div class="row" style="margin-top:8px"><div class="ico" style="background:rgba(0,194,255,.14)">🏦</div>
+       <div class="rn"><b>Total ahorrado</b><span>${ms.length} meses</span></div>
+       <div class="ra" style="color:#00c2ff">${eur0(ahos.reduce((a,b)=>a+b,0))}</div></div>
    </div>
 
    <div class="card">
@@ -461,11 +529,11 @@ function vComparar(){
 
 function vMeses(){
   const ms=months(); if(!SELMES||!ms.includes(SELMES))SELMES=ms[ms.length-1];
-  const k=SELMES,gs=gm(k),tot=sum(gs),ing=+DB.ingresos[k]||0,cats=byCat(gs);
-  const idx=ms.indexOf(k),prev=idx>0?ms[idx-1]:null,tp=prev?sum(gm(prev)):0;
+  const k=SELMES,gsAll=gm(k),gs=gsAll.filter(g=>!esAh(g)),tot=sum(gs),aho=sum(gsAll.filter(esAh)),ing=+DB.ingresos[k]||0,cats=byCat(gs);
+  const idx=ms.indexOf(k),prev=idx>0?ms[idx-1]:null,tp=prev?sum(gmG(prev)):0;
   document.getElementById('htit').textContent='Meses';
   document.getElementById('hsub').textContent='Entra al detalle de cada mes';
-  const dias={};gs.forEach(g=>{(dias[g.d]=dias[g.d]||[]).push(g)});
+  const dias={};gsAll.forEach(g=>{(dias[g.d]=dias[g.d]||[]).push(g)});
   const dord=Object.keys(dias).sort().reverse();
 
   return `<div class="chips">${ms.map(x=>`<div class="chip ${x===k?'on':''}" data-mes="${x}">${mlab(x)}</div>`).join('')}</div>
@@ -475,11 +543,12 @@ function vMeses(){
      <div class="hval">${eur(tot)}</div>
      <div class="hrow">
        <div class="hbox"><span>Ingresos</span><b style="color:#4fe6ad">${eur0(ing)}</b></div>
-       <div class="hbox"><span>Ahorro real</span><b style="color:${ing-tot>=0?'#4fe6ad':'#ff8a97'}">${eur0(ing-tot)}</b></div>
+       <div class="hbox"><span>Ahorrado</span><b style="color:#00c2ff">${eur0(aho)}</b></div>
+       <div class="hbox"><span>Sobrante</span><b style="color:${ing-tot-aho>=0?'#4fe6ad':'#ff8a97'}">${eur0(ing-tot-aho)}</b></div>
      </div>
    </div>
    <div class="kpis">
-     <div class="kpi"><span>Movimientos</span><b>${gs.length}</b></div>
+     <div class="kpi"><span>Movimientos</span><b>${gsAll.length}</b></div>
      <div class="kpi"><span>vs ${prev?mlabc(prev):'—'}</span><b style="color:${tot>=tp?'#ff8a97':'#4fe6ad'}">${tp?((tot-tp)>=0?'+':'')+eur0(tot-tp):'—'}</b></div>
    </div>
    <div class="card">
@@ -505,21 +574,65 @@ function vMeses(){
   </div>`;
 }
 
+function catPicker(){
+  return `<div class="pick">${Object.keys(DB.cats).map(c=>`<button type="button" class="pk ${c===ADD.c?'on':''}" data-pc="${esc(c)}" style="--pc:${ccolor(c)}"><i>${cicon(c)}</i><span>${esc(c)}</span></button>`).join('')}
+   <button type="button" class="pk nw" data-newcat="1"><i>＋</i><span>Nueva</span></button></div>`;
+}
+function subPicker(){
+  return `<div class="pick">${subList(ADD.c).map(x=>`<button type="button" class="pk ${x===ADD.s?'on':''}" data-ps="${esc(x)}" style="--pc:${ccolor(ADD.c)}"><span>${esc(x)}</span></button>`).join('')}
+   <button type="button" class="pk nw" data-newsub="1"><span>＋ Nueva</span></button></div>`;
+}
 function vAdd(){
   document.getElementById('htit').textContent='Nuevo gasto';
-  document.getElementById('hsub').textContent='Apunta el gasto en 5 segundos';
+  document.getElementById('hsub').textContent='Rápido, manual o varios de golpe';
   const hoy=new Date().toISOString().slice(0,10);
   const cs=Object.keys(DB.cats);
+  if(!ADD.c||!DB.cats[ADD.c])ADD.c=cs[0]||'Otros';
+  if(!ADD.s||!subList(ADD.c).includes(ADD.s))ADD.s=subList(ADD.c)[0];
+  const subsAll=[...new Set(Object.values(DB.cats).flat())].sort();
   const frec=[...new Map(DB.gastos.slice(-90).reverse().map(g=>[g.t+'|'+g.c,g])).values()].slice(0,6);
-  return `<div class="stag">
+  const seg=`<div class="seg">
+     <button type="button" data-modo="rapido" class="${ADD.modo==='rapido'?'on':''}">⚡ Rápido</button>
+     <button type="button" data-modo="manual" class="${ADD.modo==='manual'?'on':''}">✍️ Manual</button>
+     <button type="button" data-modo="lote" class="${ADD.modo==='lote'?'on':''}">📝 Varios</button>
+   </div>`;
+  const dlc=`<datalist id="dl-c">${cs.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`;
+
+  if(ADD.modo==='lote')return `<div class="stag">${seg}
+   <div class="card">
+     <div class="ttl">Escribe los gastos, uno por línea</div>
+     <div class="mini" style="margin-bottom:11px;line-height:1.7">
+       <b style="color:var(--tx2)">tabaco 6,25</b><br>
+       <b style="color:var(--tx2)">gasolina 50 repostaje</b><br>
+       <b style="color:var(--tx2)">14/07 comida fuera 12,50 kebab</b><br>
+       El último número es el importe. La categoría se detecta por el nombre; lo que sobra queda como descripción.</div>
+     <textarea id="f-lote" placeholder="tabaco 6,25&#10;cafe 0,55&#10;gasolina 50"></textarea>
+     <div class="f2" style="margin-top:12px">
+       <div class="fg"><label>Fecha por defecto</label><input id="f-ld" type="date" value="${hoy}"></div>
+       <div class="fg"><label>Si no la reconoce</label><input id="f-lc" value="${esc(ADD.c)}" list="dl-c" autocomplete="off"></div>
+     </div>
+     ${dlc}
+     <button class="btn gh" id="f-prev">👁 Previsualizar</button>
+     <div id="lote-prev"></div>
+   </div>
+  </div>`;
+
+  const manual=ADD.modo==='manual';
+  return `<div class="stag">${seg}
    <div class="card">
      <div class="fg"><label>Importe</label><input class="amt" id="f-a" type="text" inputmode="decimal" placeholder="0,00"></div>
-     <div class="qk">${[1,5,10,20,50].map(n=>`<button data-plus="${n}">+${n} €</button>`).join('')}<button data-plus="clr">C</button></div>
-     <div class="fg"><label>Categoría</label><select id="f-c">${cs.map(c=>`<option>${esc(c)}</option>`).join('')}</select></div>
-     <div class="fg"><label>Subcategoría</label><select id="f-s"></select></div>
+     <div class="qk">${[1,5,10,20,50].map(n=>`<button type="button" data-plus="${n}">+${n} €</button>`).join('')}<button type="button" data-plus="clr">C</button></div>
+     ${manual?`
+     <div class="fg"><label>Categoría · escríbela</label><input id="f-c" value="${esc(ADD.c)}" list="dl-c" placeholder="Ej. Alimentacion" autocomplete="off"></div>
+     <div class="fg"><label>Subcategoría · escríbela</label><input id="f-s" value="${esc(ADD.s||'')}" list="dl-s" placeholder="Ej. Comida fuera" autocomplete="off"></div>
+     ${dlc}<datalist id="dl-s">${subsAll.map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+     <div class="mini" style="margin:-5px 0 14px">Si no existen, se crean solas al guardar.</div>`
+     :`
+     <label>Categoría</label><div id="pk-c" style="margin-bottom:15px">${catPicker()}</div>
+     <label>Subcategoría</label><div id="pk-s" style="margin-bottom:15px">${subPicker()}</div>`}
      <div class="f2">
        <div class="fg"><label>Fecha</label><input id="f-d" type="date" value="${hoy}"></div>
-       <div class="fg"><label>Descripción</label><input id="f-t" placeholder="Opcional"></div>
+       <div class="fg"><label>Descripción</label><input id="f-t" placeholder="Opcional" autocomplete="off"></div>
      </div>
      <button class="btn" id="f-go">Guardar gasto</button>
    </div>
@@ -529,6 +642,51 @@ function vAdd(){
        <div class="rn"><b>${esc(g.t||g.s)}</b><span>${esc(g.c)}</span></div>
        <div class="ra">${eur(g.a)}</div></div>`).join('')}</div>`:''}
   </div>`;
+}
+
+/* ---- escritura en lote ---- */
+function parseLote(txt,defDate,defCat){
+  const idx=[];
+  Object.keys(DB.cats).forEach(c=>{idx.push({n:norm(c),c:c,s:null});
+    (DB.cats[c]||[]).forEach(x=>idx.push({n:norm(x),c:c,s:x}))});
+  idx.sort((a,b)=>b.n.length-a.n.length);
+  return txt.split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{
+    let rest=line,d=defDate;
+    const md=rest.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?\s+/);
+    if(md){const y=md[3]?(md[3].length===2?'20'+md[3]:md[3]):defDate.slice(0,4);
+      d=y+'-'+String(+md[2]).padStart(2,'0')+'-'+String(+md[1]).padStart(2,'0');
+      rest=rest.slice(md[0].length)}
+    const mn=[...rest.matchAll(/\d+(?:[.,]\d{1,2})?/g)];
+    if(!mn.length)return{err:line};
+    const last=mn[mn.length-1],a=parseFloat(last[0].replace(',','.'));
+    if(!a||a<=0)return{err:line};
+    rest=(rest.slice(0,last.index)+' '+rest.slice(last.index+last[0].length)).replace(/[\s€]+/g,' ').trim();
+    const nr=norm(rest);
+    const hit=idx.find(x=>x.n&&nr.includes(x.n));
+    let c=defCat,sb=null,t=rest;
+    if(hit){c=hit.c;sb=hit.s||subList(hit.c)[0];
+      const pos=nr.indexOf(hit.n);
+      t=(rest.slice(0,pos)+' '+rest.slice(pos+hit.n.length)).replace(/\s+/g,' ').trim()}
+    else sb=subList(c)[0];
+    return{d:d,c:c,s:sb,t:t,a:+a.toFixed(2)};
+  });
+}
+function lotePrev(){
+  const ta=document.getElementById('f-lote');if(!ta)return;
+  const d=document.getElementById('f-ld').value||new Date().toISOString().slice(0,10);
+  let c=(document.getElementById('f-lc').value||'').trim()||'Otros';
+  const k=Object.keys(DB.cats).find(x=>norm(x)===norm(c));if(k)c=k;
+  LOTE=parseLote(ta.value,d,c);
+  const ok=LOTE.filter(x=>!x.err), bad=LOTE.length-ok.length;
+  document.getElementById('lote-prev').innerHTML=LOTE.length?
+    `<div class="ttl" style="margin:18px 0 4px">${ok.length} gasto${ok.length===1?'':'s'} · ${eur(ok.reduce((t,x)=>t+x.a,0))}${bad?' · '+bad+' sin entender':''}</div>`+
+    LOTE.map(x=>x.err?`<div class="pv bad">⚠️ No lo entendí: «${esc(x.err)}»</div>`
+      :`<div class="pv"><div class="ico" style="width:32px;height:32px;flex:0 0 32px;font-size:16px;border-radius:10px;background:${ccolor(x.c)}22">${cicon(x.c)}</div>
+        <div class="rn"><b>${esc(x.t||x.s||x.c)}</b><span>${esc(x.c)}${x.s&&x.s!==x.c?' · '+esc(x.s):''} · ${x.d.split('-').reverse().slice(0,2).join('/')}</span></div>
+        <div class="ra">${eur(x.a)}</div></div>`).join('')+
+    (ok.length?`<button class="btn" id="f-lgo" style="margin-top:16px">Guardar ${ok.length} gasto${ok.length===1?'':'s'}</button>`:'')
+    :'<div class="empty">Escribe algo en el cuadro de arriba</div>';
+  anim();
 }
 
 function vAjustes(){
@@ -541,14 +699,14 @@ function vAjustes(){
      ${ms.map(k=>`<div class="row"><div class="ico" style="background:rgba(0,224,143,.14)">💰</div>
        <div class="rn"><b>${mlab(k)}</b><span>Nómina + otros</span></div>
        <input style="width:110px;text-align:right;padding:9px 11px;font-size:14px" type="number" step="1" value="${+DB.ingresos[k]||0}" data-ing="${k}"></div>`).join('')}
-     <button class="btn gh" id="add-mes" style="margin-top:14px">+ Añadir mes nuevo</button>
+     <button class="btn gh" id="add-mes" style="margin-top:14px">＋ Añadir mes nuevo</button>
    </div>
    <div class="card">
      <div class="ttl">Categorías</div>
-     ${Object.entries(DB.cats).map(([c,subs])=>`<div class="row"><div class="ico" style="background:${ccolor(c)}22">${cicon(c)}</div>
+     ${Object.entries(DB.cats).map(([c,subs])=>`<div class="row tap" data-editcat="${esc(c)}"><div class="ico" style="background:${ccolor(c)}22">${cicon(c)}</div>
        <div class="rn"><b>${esc(c)}</b><span>${subs.length?subs.map(esc).join(' · '):'sin subcategorías'}</span></div>
-       <button class="btn gh" style="width:auto;padding:7px 11px;font-size:12px" data-subs="${esc(c)}">Editar</button></div>`).join('')}
-     <button class="btn gh" id="add-cat" style="margin-top:14px">+ Nueva categoría</button>
+       <div class="ra" style="color:var(--tx3);font-size:18px">›</div></div>`).join('')}
+     <button class="btn gh" id="add-cat" style="margin-top:14px">＋ Nueva categoría</button>
    </div>
    <div class="card">
      <div class="ttl">Datos</div>
@@ -573,16 +731,65 @@ function render(v){
   el.classList.add('on');
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===CUR&&!b.classList.contains('fab')));
   window.scrollTo({top:0,behavior:'instant'});
-  if(CUR==='add')subs();
   anim();
 }
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(navigator.vibrate)navigator.vibrate(8);render(b.dataset.v)});
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{if(navigator.vibrate)navigator.vibrate(8);nav(b.dataset.v)});
+
+/* ---- historial: el botón atrás del móvil navega DENTRO de la app ---- */
+function nav(v){
+  if(SHEETOPEN){SHEETOPEN=false;hideSheetDOM();history.replaceState({v:v,mes:SELMES,sheet:0},'');render(v);return}
+  history.pushState({v:v,mes:SELMES,sheet:0},'');
+  render(v);
+}
+window.addEventListener('popstate',e=>{
+  const st=e.state||{v:'inicio',mes:null,sheet:0};
+  if(SHEETOPEN&&!st.sheet){SHEETOPEN=false;hideSheetDOM()}
+  if(st.mes)SELMES=st.mes;
+  if(st.v&&st.v!==CUR)render(st.v);
+});
 
 /* ============ sheet ============ */
-function openSheet(html){document.getElementById('sc').innerHTML=html;
-  document.getElementById('sheet').classList.add('on');document.getElementById('ov').classList.add('on');anim()}
-function closeSheet(){document.getElementById('sheet').classList.remove('on');document.getElementById('ov').classList.remove('on')}
+let SHEETOPEN=false;
+function openSheet(html){
+  document.getElementById('sc').innerHTML='<button type="button" class="shbk" id="shbk">← Volver</button>'+html;
+  document.getElementById('sheet').classList.add('on');document.getElementById('ov').classList.add('on');
+  document.getElementById('sheet').scrollTop=0;
+  if(!SHEETOPEN){SHEETOPEN=true;history.pushState({v:CUR,mes:SELMES,sheet:1},'')}
+  anim();
+}
+function hideSheetDOM(){document.getElementById('sheet').classList.remove('on');document.getElementById('ov').classList.remove('on')}
+function closeSheet(){if(SHEETOPEN){SHEETOPEN=false;hideSheetDOM();history.back()}else hideSheetDOM()}
 document.getElementById('ov').onclick=closeSheet;
+
+/* ---- confirmación bonita en vez de confirm() ---- */
+function ask(msg,cb,yes){ASKCB=cb;openSheet(`<div class="sht">${esc(msg)}</div>
+  <button class="btn dg" id="ask-y">${esc(yes||'Sí, adelante')}</button>
+  <button class="btn gh" id="ask-n" style="margin-top:10px">Cancelar</button>`)}
+
+/* ---- crear / editar categorías ---- */
+function nuevaCat(){openSheet(`<div class="sht">Nueva categoría</div>
+   <div class="f2"><div class="fg"><label>Nombre</label><input id="nc-n" placeholder="Ej. Vivienda" autocomplete="off"></div>
+   <div class="fg"><label>Icono</label><input id="nc-i" placeholder="🏠" maxlength="4" style="text-align:center;font-size:22px"></div></div>
+   <div class="fg"><label>Subcategorías (separadas por comas)</label><input id="nc-s" placeholder="Alquiler, Luz, Agua" autocomplete="off"></div>
+   <button class="btn" id="nc-go">Crear categoría</button>`)}
+function nuevaSub(c){openSheet(`<div class="sht">Nueva subcategoría</div>
+   <div class="mini" style="margin:-10px 0 16px">Dentro de ${cicon(c)} ${esc(c)}</div>
+   <div class="fg"><input id="ns-n" placeholder="Ej. Supermercado" autocomplete="off"></div>
+   <button class="btn" id="ns-go" data-forcat="${esc(c)}">Añadir</button>`)}
+function editCat(c){EDITC={o:c,n:c,i:cicon(c),subs:(DB.cats[c]||[]).slice()};openSheet(catSheet())}
+function catSheet(){const E=EDITC;
+  return `<div class="sht">Editar categoría</div>
+   <div class="f2"><div class="fg"><label>Nombre</label><input id="ec-n" value="${esc(E.n)}" autocomplete="off"></div>
+   <div class="fg"><label>Icono</label><input id="ec-i" value="${esc(E.i)}" maxlength="4" style="text-align:center;font-size:22px"></div></div>
+   <label>Subcategorías</label>
+   <div class="tags" id="ec-tags">${E.subs.length?E.subs.map(x=>`<span class="tg">${esc(x)}<b data-rmsub="${esc(x)}">✕</b></span>`).join(''):'<span class="mini">Ninguna todavía</span>'}</div>
+   <div style="display:flex;gap:8px;margin:13px 0 18px">
+     <input id="ec-new" placeholder="Añadir subcategoría" autocomplete="off">
+     <button class="btn" id="ec-add" style="width:auto;padding:0 20px;box-shadow:none">＋</button></div>
+   <button class="btn" id="ec-save">Guardar cambios</button>
+   <button class="btn dg" id="ec-del" style="margin-top:10px">Eliminar categoría</button>`}
+function syncEdit(){const n=document.getElementById('ec-n'),i=document.getElementById('ec-i');
+  if(n)EDITC.n=n.value.trim()||EDITC.o; if(i)EDITC.i=i.value.trim()||EDITC.i}
 
 function detalleCat(c,k){
   const ms=months();
@@ -596,7 +803,7 @@ function detalleCat(c,k){
        <div class="mini">${k?mlab(k):'Todo el histórico'} · ${gs.length} movimientos</div></div>
      <div style="font-size:20px;font-weight:800">${eur0(tt)}</div></div>
    <div class="card" style="margin:0 0 14px"><div class="ttl">Todos los meses</div>
-     ${lineChart([{col:ccolor(c),vals:serie}],ms.map(mlabc))}
+     ${lineChart([{col:ccolor(c),vals:serie,name:c}],ms.map(mlabc))}
      <div class="tw" style="margin:10px -18px 0;padding:0 18px"><table style="min-width:0">
        <tbody><tr>${ms.map((x,i)=>`<td style="text-align:center;font-size:11px;color:var(--tx3)">${mlabc(x)}<br><b style="color:var(--tx);font-size:12.5px">${eur0(serie[i])}</b></td>`).join('')}</tr></tbody></table></div></div>
    <div class="card" style="margin:0 0 14px"><div class="ttl">Por subcategoría</div>
@@ -611,17 +818,36 @@ function detalleCat(c,k){
 
 /* ============ interacciones globales ============ */
 document.addEventListener('click',e=>{
+  if(e.target.closest('#shbk')){closeSheet();return}
+  const seg=e.target.closest('[data-modo]');
+  if(seg){ADD.modo=seg.dataset.modo;LOTE=null;render('add');return}
   const chip=e.target.closest('.chip[data-mes]');
-  if(chip){SELMES=chip.dataset.mes;render('meses');return}
+  if(chip){SELMES=chip.dataset.mes;nav('meses');return}
   const bw=e.target.closest('.bw[data-mes]');
-  if(bw){SELMES=bw.dataset.mes;render('meses');return}
+  if(bw){SELMES=bw.dataset.mes;nav('meses');return}
+  const pc=e.target.closest('[data-pc]');
+  if(pc){ADD.c=pc.dataset.pc;ADD.s=subList(ADD.c)[0];
+    document.getElementById('pk-c').innerHTML=catPicker();
+    document.getElementById('pk-s').innerHTML=subPicker();
+    if(navigator.vibrate)navigator.vibrate(6);return}
+  const ps=e.target.closest('[data-ps]');
+  if(ps){ADD.s=ps.dataset.ps;document.getElementById('pk-s').innerHTML=subPicker();
+    if(navigator.vibrate)navigator.vibrate(6);return}
+  if(e.target.closest('[data-newcat]')){nuevaCat();return}
+  if(e.target.closest('[data-newsub]')){nuevaSub(ADD.c);return}
+  const ec=e.target.closest('[data-editcat]');
+  if(ec){editCat(ec.dataset.editcat);return}
   const cat=e.target.closest('[data-cat]');
   if(cat){detalleCat(cat.dataset.cat,CUR==='meses'?SELMES:null);return}
   const rep=e.target.closest('[data-rep]');
   if(rep){const d=JSON.parse(rep.dataset.rep);
-    document.getElementById('f-a').value=String(d.a).replace('.',',');
-    document.getElementById('f-c').value=d.c;subs();document.getElementById('f-s').value=d.s;
-    document.getElementById('f-t').value=d.t||'';window.scrollTo({top:0,behavior:'smooth'});return}
+    ADD.c=d.c;ADD.s=d.s;
+    const fa=document.getElementById('f-a');if(fa)fa.value=String(d.a).replace('.',',');
+    const ft=document.getElementById('f-t');if(ft)ft.value=d.t||'';
+    const fc=document.getElementById('f-c'),fs=document.getElementById('f-s');
+    if(fc)fc.value=d.c; if(fs)fs.value=d.s||'';
+    const pkc=document.getElementById('pk-c');if(pkc){pkc.innerHTML=catPicker();document.getElementById('pk-s').innerHTML=subPicker()}
+    window.scrollTo({top:0,behavior:'smooth'});return}
   const pl=e.target.closest('[data-plus]');
   if(pl){const i=document.getElementById('f-a');
     if(pl.dataset.plus==='clr')i.value='';
@@ -629,55 +855,105 @@ document.addEventListener('click',e=>{
     if(navigator.vibrate)navigator.vibrate(6);return}
   const del=e.target.closest('[data-del]');
   if(del){const g=DB.gastos.find(x=>x.id===del.dataset.del);if(!g)return;
-    if(confirm('¿Borrar «'+(g.t||g.s||g.c)+'» de '+eur(g.a)+'?')){
-      DB.gastos=DB.gastos.filter(x=>x.id!==g.id);save();render();toast('Gasto borrado')}return}
+    ask('¿Borrar «'+(g.t||g.s||g.c)+'» de '+eur(g.a)+'?',()=>{
+      DB.gastos=DB.gastos.filter(x=>x.id!==g.id);save();render();toast('Gasto borrado')},'Sí, borrar');return}
+  const rm=e.target.closest('[data-rmsub]');
+  if(rm&&EDITC){syncEdit();EDITC.subs=EDITC.subs.filter(x=>x!==rm.dataset.rmsub);
+    document.getElementById('sc').innerHTML='<button type="button" class="shbk" id="shbk">← Volver</button>'+catSheet();return}
 });
 
-function subs(){
-  const c=document.getElementById('f-c').value,s=document.getElementById('f-s');
-  const list=DB.cats[c]&&DB.cats[c].length?DB.cats[c]:[c];
-  s.innerHTML=list.map(x=>`<option>${esc(x)}</option>`).join('');
-}
 document.addEventListener('change',e=>{
-  if(e.target.id==='f-c')subs();
+  if(e.target.id==='f-c'){const v=e.target.value.trim();if(DB.cats[v]){ADD.c=v;ADD.s=subList(v)[0];
+    const fs=document.getElementById('f-s');if(fs&&!fs.value)fs.value=ADD.s}}
   if(e.target.dataset.ing!==undefined){DB.ingresos[e.target.dataset.ing]=+e.target.value||0;save();toast('Ingresos actualizados')}
+  if(e.target.id==='fimp'&&e.target.files[0]){const r=new FileReader();
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.gastos)throw 0;DB=d;DB.icons=DB.icons||{};save();render();toast('Copia importada')}
+      catch(err){toast('Archivo no válido')}};r.readAsText(e.target.files[0])}
 });
+
 document.addEventListener('click',e=>{
-  if(e.target.id==='f-go'){
+  const id=e.target.id||(e.target.closest('button')||{}).id;
+  /* --- guardar un gasto --- */
+  if(id==='f-go'){
     const a=parseFloat((document.getElementById('f-a').value||'').replace(',','.'));
     if(!a||a<=0){toast('Pon un importe');return}
     const d=document.getElementById('f-d').value||new Date().toISOString().slice(0,10);
-    DB.gastos.push({id:uid(),d,m:mkey(d),c:document.getElementById('f-c').value,
-      s:document.getElementById('f-s').value,t:document.getElementById('f-t').value.trim(),a:+a.toFixed(2)});
+    let c,sb;
+    if(ADD.modo==='manual'){
+      c=(document.getElementById('f-c').value||'').trim()||'Otros';
+      const k=Object.keys(DB.cats).find(x=>norm(x)===norm(c));if(k)c=k;
+      sb=(document.getElementById('f-s').value||'').trim()||c;
+      const ks=subList(c).find(x=>norm(x)===norm(sb));if(ks)sb=ks;
+      ensureCat(c,sb);ADD.c=c;ADD.s=sb;
+    }else{c=ADD.c;sb=ADD.s||ADD.c}
+    DB.gastos.push({id:uid(),d:d,m:mkey(d),c:c,s:sb,t:document.getElementById('f-t').value.trim(),a:+a.toFixed(2)});
     if(DB.ingresos[mkey(d)]===undefined)DB.ingresos[mkey(d)]=0;
     save();if(navigator.vibrate)navigator.vibrate([10,40,14]);
-    toast('✓ '+eur(a)+' guardado');SELMES=mkey(d);render('meses');
-  }
-  if(e.target.id==='add-mes'){const k=prompt('Mes nuevo (AAAA-MM)',new Date().toISOString().slice(0,7));
-    if(k&&/^\d{4}-\d{2}$/.test(k)){DB.ingresos[k]=DB.ingresos[k]||0;save();render()}}
-  if(e.target.id==='add-cat'){const c=prompt('Nombre de la categoría');
-    if(c&&!DB.cats[c]){const s=prompt('Subcategorías separadas por comas (opcional)','');
-      DB.cats[c]=s?s.split(',').map(x=>x.trim()).filter(Boolean):[];save();render();toast('Categoría creada')}}
-  if(e.target.dataset.subs){const c=e.target.dataset.subs;
-    const s=prompt('Subcategorías de «'+c+'» (separadas por comas). Vacío = borrar categoría',(DB.cats[c]||[]).join(', '));
-    if(s===null)return;
-    if(s.trim()===''){if(confirm('¿Eliminar la categoría «'+c+'»? Los gastos existentes se conservan.'))delete DB.cats[c]}
-    else DB.cats[c]=s.split(',').map(x=>x.trim()).filter(Boolean);
-    save();render()}
-  if(e.target.id==='exp'){dl('mis-gastos-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(DB,null,1),'application/json')}
-  if(e.target.id==='expc'){
+    toast('✓ '+eur(a)+' guardado');SELMES=mkey(d);nav('meses');return}
+  /* --- lote --- */
+  if(id==='f-prev'){lotePrev();return}
+  if(id==='f-lgo'){
+    const ok=(LOTE||[]).filter(x=>!x.err);if(!ok.length)return;
+    ok.forEach(x=>{ensureCat(x.c,x.s);
+      DB.gastos.push({id:uid(),d:x.d,m:mkey(x.d),c:x.c,s:x.s,t:x.t,a:x.a});
+      if(DB.ingresos[mkey(x.d)]===undefined)DB.ingresos[mkey(x.d)]=0});
+    save();if(navigator.vibrate)navigator.vibrate([10,40,14]);
+    toast('✓ '+ok.length+' gastos guardados');SELMES=mkey(ok[0].d);LOTE=null;nav('meses');return}
+  /* --- confirmaciones --- */
+  if(id==='ask-y'){const cb=ASKCB;ASKCB=null;closeSheet();if(cb)cb();return}
+  if(id==='ask-n'){ASKCB=null;closeSheet();return}
+  /* --- categorías --- */
+  if(id==='nc-go'){
+    const n=(document.getElementById('nc-n').value||'').trim();
+    if(!n){toast('Ponle un nombre');return}
+    if(DB.cats[n]){toast('Ya existe');return}
+    const ic=(document.getElementById('nc-i').value||'').trim();
+    const sb=(document.getElementById('nc-s').value||'').split(',').map(x=>x.trim()).filter(Boolean);
+    DB.cats[n]=sb;if(ic)DB.icons[n]=ic;
+    ADD.c=n;ADD.s=subList(n)[0];save();closeSheet();render();toast('Categoría creada');return}
+  if(id==='ns-go'){
+    const c=(e.target.closest('[data-forcat]')||{dataset:{}}).dataset.forcat;
+    const n=(document.getElementById('ns-n').value||'').trim();
+    if(!c||!n){toast('Escribe un nombre');return}
+    ensureCat(c,n);ADD.c=c;ADD.s=n;save();closeSheet();render();toast('Subcategoría añadida');return}
+  if(id==='ec-add'&&EDITC){syncEdit();
+    const v=(document.getElementById('ec-new').value||'').trim();
+    if(!v){toast('Escribe un nombre');return}
+    if(!EDITC.subs.includes(v))EDITC.subs.push(v);
+    document.getElementById('sc').innerHTML='<button type="button" class="shbk" id="shbk">← Volver</button>'+catSheet();return}
+  if(id==='ec-save'&&EDITC){syncEdit();
+    const o=EDITC.o,n=EDITC.n;
+    if(n!==o&&DB.cats[n]){toast('Ya existe «'+n+'»');return}
+    const out={};Object.keys(DB.cats).forEach(k=>{if(k===o)out[n]=EDITC.subs.slice();else out[k]=DB.cats[k]});
+    DB.cats=out;
+    if(n!==o){DB.gastos.forEach(g=>{if(g.c===o)g.c=n});delete DB.icons[o]}
+    DB.icons[n]=EDITC.i;
+    if(ADD.c===o)ADD.c=n;
+    EDITC=null;save();closeSheet();render();toast('Categoría guardada');return}
+  if(id==='ec-del'&&EDITC){const c=EDITC.o;
+    ask('¿Eliminar la categoría «'+c+'»? Los gastos ya apuntados se conservan.',()=>{
+      delete DB.cats[c];delete DB.icons[c];EDITC=null;save();render();toast('Categoría eliminada')},'Sí, eliminar');return}
+  /* --- meses e ingresos --- */
+  if(id==='add-mes'){openSheet(`<div class="sht">Añadir un mes</div>
+    <div class="fg"><label>Mes</label><input id="am-k" type="month" value="${new Date().toISOString().slice(0,7)}"></div>
+    <div class="fg"><label>Ingresos del mes (€)</label><input id="am-i" type="number" step="1" value="0" inputmode="decimal"></div>
+    <button class="btn" id="am-go">Añadir mes</button>`);return}
+  if(id==='am-go'){const k=document.getElementById('am-k').value;
+    if(!/^\d{4}-\d{2}$/.test(k||'')){toast('Elige un mes');return}
+    DB.ingresos[k]=+document.getElementById('am-i').value||0;
+    save();closeSheet();render();toast('Mes añadido');return}
+  if(id==='add-cat'){nuevaCat();return}
+  /* --- datos --- */
+  if(id==='exp'){dl('mis-gastos-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(DB,null,1),'application/json');return}
+  if(id==='expc'){
     const rows=[['Fecha','Categoria','Subcategoria','Descripcion','Importe']].concat(
       [...DB.gastos].sort((a,b)=>a.d.localeCompare(b.d)).map(g=>[g.d,g.c,g.s,g.t,String(g.a).replace('.',',')]));
-    dl('mis-gastos.csv','﻿'+rows.map(r=>r.map(x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv')}
-  if(e.target.id==='imp')document.getElementById('fimp').click();
-  if(e.target.id==='rst'){if(confirm('Se borrarán tus gastos añadidos y volverá el histórico original de los Excel. ¿Seguro?')){
-    localStorage.removeItem(KEY);load();render();toast('Datos restaurados')}}
+    dl('mis-gastos.csv','\ufeff'+rows.map(r=>r.map(x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv');return}
+  if(id==='imp'){document.getElementById('fimp').click();return}
+  if(id==='rst'){ask('Se borrarán los gastos que hayas añadido y volverá el histórico original de los Excel.',()=>{
+    localStorage.removeItem(KEY);load();render();toast('Datos restaurados')},'Sí, restaurar');return}
 });
-document.addEventListener('change',e=>{
-  if(e.target.id==='fimp'&&e.target.files[0]){const r=new FileReader();
-    r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.gastos)throw 0;DB=d;save();render();toast('Copia importada')}
-      catch(err){toast('Archivo no válido')}};r.readAsText(e.target.files[0])}
-});
+
 function dl(name,txt,mime){const b=new Blob([txt],{type:mime}),u=URL.createObjectURL(b);
   const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),3000);toast('Descargando…')}
 
@@ -716,7 +992,7 @@ function lock(){
 }
 
 /* ============ init ============ */
-function boot(){load();render('inicio')}
+function boot(){load();history.replaceState({v:'inicio',mes:null,sheet:0},'');render('inicio')}
 if(ENC && !localStorage.getItem(KEY)) lock(); else boot();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>

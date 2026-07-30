@@ -228,6 +228,15 @@ nav button:active{transform:scale(.9)}
 #lk-p{text-align:center;font-size:26px;letter-spacing:.34em;padding:15px;font-weight:700}
 .lkerr{color:#ff8a97;font-size:12.5px;font-weight:650;height:18px;margin:9px 0 3px}
 .lkf{font-size:11px;color:var(--tx3);margin-top:16px;line-height:1.6}
+/* indicador de sincronizacion */
+.syncb{flex:0 0 34px;width:34px;height:34px;border-radius:12px;border:1px solid var(--line);
+  background:var(--card);color:var(--tx2);font-size:15px;font-weight:700;display:grid;place-items:center;
+  cursor:pointer;transition:.25s;margin-bottom:4px;font-family:inherit}
+.syncb:active{transform:scale(.9)}
+.syncb.ok{color:#4fe6ad;border-color:rgba(0,224,143,.35);background:rgba(0,224,143,.1)}
+.syncb.err{color:#ff8a97;border-color:rgba(255,90,110,.4);background:rgba(255,90,110,.12)}
+.syncb.sync{color:#00c2ff;border-color:rgba(0,194,255,.4);background:rgba(0,194,255,.1);animation:gira 1s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
 .dayh{font-size:11px;font-weight:750;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin:16px 0 2px}
 .mini{font-size:12px;color:var(--tx3)}
 /* leyendas de graficos */
@@ -277,6 +286,7 @@ textarea{min-height:140px;resize:vertical;line-height:1.55;font-size:15px}
 <div id="app">
   <header>
     <div><h1 id="htit">Inicio</h1><div class="sub" id="hsub">Tus finanzas, de un vistazo</div></div>
+    <button id="syncb" class="syncb off" type="button" style="display:none"></button>
   </header>
 
   <div class="view on" id="v-inicio"></div>
@@ -325,12 +335,12 @@ function load(){
   migrar();
   save();
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){toast('No se pudo guardar')}}
+function save(){DB.cfgU=Date.now();try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){toast('No se pudo guardar')}syncSoon()}
 
 /* ---- migraciones de estructura (se aplican una sola vez) ---- */
 const MIG=4;
 function migrar(){
-  DB.icons=DB.icons||{}; DB.limites=DB.limites||{}; DB.cats=DB.cats||{};
+  DB.icons=DB.icons||{}; DB.limites=DB.limites||{}; DB.cats=DB.cats||{}; DB.borrados=DB.borrados||{};
   const v=DB.mig||0;
   if(v>=MIG)return;
   if(v<2)mig2();
@@ -817,6 +827,23 @@ function vAjustes(){
        <input style="width:100px;text-align:right;padding:9px 11px;font-size:14px" type="number" step="5" min="0" inputmode="decimal" value="${+DB.limites[c]||0}" data-lim="${esc(c)}"></div>`).join('')}
      <div class="mini" style="margin-top:12px">Total de los topes: <b style="color:var(--tx)">${eur0(Object.keys(DB.cats).reduce((t,c)=>t+(+DB.limites[c]||0),0))}</b> al mes</div>
    </div>
+   ${(()=>{const c=syncCfg();return `<div class="card">
+     <div class="ttl">Sincronización 🔄</div>
+     ${c?`<div class="row"><div class="ico" style="background:rgba(0,224,143,.14)">🔗</div>
+       <div class="rn"><b>${esc(c.owner)}/${esc(c.repo)}</b>
+         <span>${c.last?'Última vez: '+new Date(c.last).toLocaleString('es-ES',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Todavía sin sincronizar'}</span></div></div>
+       <button class="btn" id="sy-now" style="margin:14px 0 10px">🔄 Sincronizar ahora</button>
+       <button class="btn gh" id="sy-off">Desconectar este dispositivo</button>
+       <div class="mini" style="margin-top:12px">Al desconectar se borra la llave de este dispositivo. Tus gastos siguen aquí y en el repositorio.</div>`
+     :`<div class="mini" style="margin-bottom:14px">Guarda tus gastos en un repositorio privado tuyo y tenlos iguales en el móvil y en el PC. La llave se queda solo en este dispositivo.</div>
+       <div class="f2">
+         <div class="fg"><label>Usuario de GitHub</label><input id="sy-o" value="vcerdan21" autocomplete="off" spellcheck="false"></div>
+         <div class="fg"><label>Repositorio</label><input id="sy-r" value="gastos-datos" autocomplete="off" spellcheck="false"></div>
+       </div>
+       <div class="fg"><label>Llave de acceso</label><input id="sy-t" type="password" placeholder="github_pat_..." autocomplete="off" spellcheck="false"></div>
+       <button class="btn" id="sy-go">Conectar</button>
+       <div class="mini" style="margin-top:12px">La llave se guarda en este dispositivo, no se envía a ningún sitio salvo a GitHub. Puedes anularla desde GitHub cuando quieras.</div>`}
+   </div>`})()}
    <div class="card">
      <div class="ttl">Datos</div>
      <div class="mini" style="margin-bottom:12px">${DB.gastos.length} gastos guardados en este dispositivo. Haz copia de vez en cuando.</div>
@@ -968,6 +995,7 @@ document.addEventListener('click',e=>{
   const del=e.target.closest('[data-del]');
   if(del){const g=DB.gastos.find(x=>x.id===del.dataset.del);if(!g)return;
     ask('¿Borrar «'+(g.t||g.s||g.c)+'» de '+eur(g.a)+'?',()=>{
+      DB.borrados=DB.borrados||{};DB.borrados[g.id]=Date.now();
       DB.gastos=DB.gastos.filter(x=>x.id!==g.id);save();render();toast('Gasto borrado')},'Sí, borrar');return}
   const rm=e.target.closest('[data-rmsub]');
   if(rm&&EDITC){syncEdit();EDITC.subs=EDITC.subs.filter(x=>x!==rm.dataset.rmsub);
@@ -1068,6 +1096,18 @@ document.addEventListener('click',e=>{
       [...DB.gastos].sort((a,b)=>a.d.localeCompare(b.d)).map(g=>[g.d,g.c,g.s,g.t,String(g.a).replace('.',',')]));
     dl('mis-gastos.csv','\ufeff'+rows.map(r=>r.map(x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv');return}
   if(id==='imp'){document.getElementById('fimp').click();return}
+  /* --- sincronizacion --- */
+  if(id==='sy-go'){
+    const o=(document.getElementById('sy-o').value||'').trim();
+    const rp=(document.getElementById('sy-r').value||'').trim();
+    const tk=(document.getElementById('sy-t').value||'').trim();
+    if(!o||!rp||!tk){toast('Faltan datos');return}
+    syncPon({owner:o,repo:rp,path:'datos.json',branch:'main',token:tk,last:0});
+    toast('Conectando…');sincronizar(true).then(()=>render());return}
+  if(id==='sy-now'){sincronizar(true);return}
+  if(id==='sy-off'){ask('Se borrará la llave de este dispositivo. Tus gastos se quedan aquí y en el repositorio.',()=>{
+    syncQuita();SYNCST='off';pintaSync();render();toast('Desconectado')},'Sí, desconectar');return}
+  if(id==='syncb'){sincronizar(true);return}
   if(id==='rst'){
     if(ENC&&!DATA){ask('Para traer el histórico original hay que descifrar el archivo, así que se te pedirá el PIN. Tus datos actuales NO se tocan hasta que lo aciertes.',()=>{
       sessionStorage.setItem('restaurar','1');location.reload()},'Pedir el PIN');return}
@@ -1077,6 +1117,110 @@ document.addEventListener('click',e=>{
 
 function dl(name,txt,mime){const b=new Blob([txt],{type:mime}),u=URL.createObjectURL(b);
   const a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),3000);toast('Descargando…')}
+
+/* ============ sincronizacion con un repositorio privado de GitHub ============ */
+const SKEY='misgastos_sync';
+let SYNCST='off', SYNCMSG='', SYNCTM=null;
+
+function syncCfg(){try{const c=JSON.parse(localStorage.getItem(SKEY));return c&&c.token?c:null}catch(e){return null}}
+function syncPon(c){try{localStorage.setItem(SKEY,JSON.stringify(c))}catch(e){}}
+function syncQuita(){try{localStorage.removeItem(SKEY)}catch(e){}}
+
+function b64enc(s){const b=new TextEncoder().encode(s);let o='';
+  for(let i=0;i<b.length;i+=0x8000)o+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));
+  return btoa(o)}
+function b64dec(x){const bin=atob(String(x).replace(/\s/g,''));const a=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(a)}
+
+function ghUrl(c){return 'https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+(c.path||'datos.json')}
+function ghCab(c){return{Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}
+async function ghLeer(c){
+  const r=await fetch(ghUrl(c)+'?ref='+(c.branch||'main')+'&t='+Date.now(),{headers:ghCab(c),cache:'no-store'});
+  if(r.status===404)return{datos:null,sha:null};
+  if(r.status===401||r.status===403)throw new Error('la llave no vale o no tiene permiso');
+  if(!r.ok)throw new Error('GitHub respondió '+r.status);
+  const j=await r.json();
+  let d=null; try{d=JSON.parse(b64dec(j.content))}catch(e){throw new Error('el archivo del repositorio no se entiende')}
+  return{datos:d,sha:j.sha};
+}
+async function ghEscribir(c,datos,sha){
+  const cuerpo={message:'gastos '+new Date().toISOString().slice(0,16).replace('T',' '),
+    content:b64enc(JSON.stringify(datos)),branch:c.branch||'main'};
+  if(sha)cuerpo.sha=sha;
+  const r=await fetch(ghUrl(c),{method:'PUT',headers:Object.assign(ghCab(c),{'Content-Type':'application/json'}),body:JSON.stringify(cuerpo)});
+  if(r.status===409||r.status===422)throw new Error('conflicto, se reintenta solo');
+  if(!r.ok)throw new Error('GitHub respondió '+r.status);
+  const j=await r.json();
+  return j.content&&j.content.sha;
+}
+
+function paquete(){return{v:1,gastos:DB.gastos||[],ingresos:DB.ingresos||{},cats:DB.cats||{},
+  icons:DB.icons||{},limites:DB.limites||{},borrados:DB.borrados||{},mig:+DB.mig||0,cfgU:+DB.cfgU||0}}
+
+/* fusion: los movimientos se unen por id (gana el editado mas tarde);
+   la configuracion la aporta el dispositivo que guardo mas recientemente */
+function fundir(rem,loc){
+  if(!rem||!Array.isArray(rem.gastos))return loc;
+  const bor={};
+  [rem.borrados||{},loc.borrados||{}].forEach(o=>Object.keys(o).forEach(k=>{bor[k]=Math.max(+bor[k]||0,+o[k]||0)}));
+  const map=new Map();
+  (rem.gastos||[]).forEach(g=>{if(g&&g.id)map.set(g.id,g)});
+  (loc.gastos||[]).forEach(g=>{if(!g||!g.id)return;const o=map.get(g.id);
+    if(!o||(+g.u||0)>=(+o.u||0))map.set(g.id,g)});
+  const gastos=[...map.values()].filter(g=>!(bor[g.id]&&bor[g.id]>=(+g.u||0)));
+  const locGana=(+loc.cfgU||0)>=(+rem.cfgU||0);
+  const viejo=locGana?rem:loc, nuevo=locGana?loc:rem;
+  const une=k=>Object.assign({},viejo[k]||{},nuevo[k]||{});
+  return{v:1,gastos:gastos,ingresos:une('ingresos'),cats:une('cats'),icons:une('icons'),
+    limites:une('limites'),borrados:bor,mig:Math.max(+rem.mig||0,+loc.mig||0),
+    cfgU:Math.max(+rem.cfgU||0,+loc.cfgU||0)};
+}
+
+function pintaSync(){
+  const b=document.getElementById('syncb'); if(!b)return;
+  const c=syncCfg();
+  b.style.display=c?'grid':'none';
+  b.className='syncb '+SYNCST;
+  b.textContent=SYNCST==='sync'?'⟳':(SYNCST==='err'?'!':'✓');
+  b.title=SYNCST==='sync'?'Sincronizando…':(SYNCST==='err'?'Error: '+SYNCMSG:'Sincronizado · toca para forzar');
+}
+
+async function sincronizar(manual,intento){
+  const c=syncCfg();
+  if(!c){SYNCST='off';pintaSync();return}
+  if(SYNCST==='sync'&&!manual)return;
+  if(!navigator.onLine){SYNCST='err';SYNCMSG='sin conexión';pintaSync();if(manual)toast('Sin conexión');return}
+  SYNCST='sync';SYNCMSG='';pintaSync();
+  try{
+    const {datos,sha}=await ghLeer(c);
+    const loc=paquete();
+    const fus=fundir(datos,loc);
+    const antes=JSON.stringify(loc), despues=JSON.stringify(fus);
+    if(antes!==despues){
+      DB.gastos=fus.gastos;DB.ingresos=fus.ingresos;DB.cats=fus.cats;DB.icons=fus.icons;
+      DB.limites=fus.limites;DB.borrados=fus.borrados;DB.mig=fus.mig;DB.cfgU=fus.cfgU;
+      try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}
+    }
+    if(!datos||despues!==JSON.stringify(datos)){
+      const nuevoSha=await ghEscribir(c,fus,sha);
+      c.sha=nuevoSha;
+    }else c.sha=sha;
+    c.last=Date.now();syncPon(c);
+    SYNCST='ok';
+    if(antes!==despues&&!SHEETOPEN&&CUR!=='add')render();
+    if(manual)toast('Sincronizado · '+fus.gastos.length+' movimientos');
+  }catch(e){
+    const m=String(e&&e.message||e);
+    if(/conflicto/.test(m)&&!intento){setTimeout(()=>sincronizar(manual,1),800);return}
+    SYNCST='err';SYNCMSG=m;
+    if(manual)toast('No se pudo sincronizar: '+m);
+  }
+  pintaSync();
+}
+function syncSoon(){if(!syncCfg())return;clearTimeout(SYNCTM);SYNCTM=setTimeout(()=>sincronizar(false),2500)}
+window.addEventListener('online',()=>sincronizar(false));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)sincronizar(false)});
 
 /* ============ cifrado / bloqueo ============ */
 const b64d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));

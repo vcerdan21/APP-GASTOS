@@ -298,11 +298,13 @@ textarea{min-height:140px;resize:vertical;line-height:1.55;font-size:15px}
   <div class="lkbox">
     <div class="lkico">🔒</div>
     <div class="lkt">Mis Gastos</div>
-    <div class="lks">Introduce tu PIN para descifrar tus datos</div>
-    <input id="lk-p" type="password" inputmode="numeric" autocomplete="off" placeholder="••••">
-    <div id="lk-m" class="lkerr"></div>
-    <button id="lk-go" class="btn">Desbloquear</button>
-    <div class="lkf">Tus datos están cifrados en este archivo.<br>Sin el PIN no se pueden leer.</div>
+    <div class="lks" id="lk-s">Introduce tu PIN para descifrar tus datos</div>
+    <div id="lk-form">
+      <input id="lk-p" type="password" inputmode="numeric" autocomplete="off" placeholder="••••">
+      <div id="lk-m" class="lkerr"></div>
+      <button id="lk-go" class="btn">Desbloquear</button>
+    </div>
+    <div class="lkf" id="lk-f">Tus datos están cifrados en este archivo.<br>Sin el PIN no se pueden leer.</div>
   </div>
 </div>
 
@@ -319,12 +321,53 @@ let DATA = SEED;
 const KEY='misgastos_v1';
 let DB=null;
 function load(){
-  try{const r=localStorage.getItem(KEY); if(r){DB=JSON.parse(r); DB.icons=DB.icons||{}; return;}}catch(e){}
+  try{const r=localStorage.getItem(KEY); if(r){DB=JSON.parse(r); migrar(); return;}}catch(e){}
   const s=DATA||{gastos:[],ingresos:{},cats:{}};
   DB={v:1,gastos:(s.gastos||[]).map((g,i)=>({id:'s'+i,...g})),ingresos:{...(s.ingresos||{})},cats:{...(s.cats||{})},icons:{...(s.icons||{})}};
+  migrar();
   save();
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){toast('No se pudo guardar')}}
+
+/* ---- migraciones de estructura (se aplican una sola vez) ---- */
+const MIG=3;
+function migrar(){
+  DB.icons=DB.icons||{}; DB.limites=DB.limites||{}; DB.cats=DB.cats||{};
+  const v=DB.mig||0;
+  if(v>=MIG)return;
+  if(v<2)mig2();
+  if(v<3)mig3();
+  DB.mig=MIG;
+  save();
+}
+function mig2(){
+  /* 1) «Play 5» deja de ser categoría: pasa a subcategoría de Ocio */
+  DB.gastos.forEach(g=>{if(g.c==='Play 5'){g.c='Ocio';g.s='Play 5'}});
+  delete DB.cats['Play 5']; delete DB.icons['Play 5']; delete DB.limites['Play 5'];
+  if(!DB.cats['Ocio'])DB.cats['Ocio']=[];
+  if(!DB.cats['Ocio'].includes('Play 5'))DB.cats['Ocio'].push('Play 5');
+  /* 2) «Otros» desaparece: sus subcategorías se mudan a Extra */
+  const subOtros=(DB.cats['Otros']||[]).slice();
+  DB.gastos.forEach(g=>{if(g.c==='Otros'){g.c='Extra';if(!g.s||g.s==='Otros')g.s='Imprevistos'}});
+  if(!DB.cats['Extra'])DB.cats['Extra']=[];
+  subOtros.concat(['Imprevistos']).forEach(x=>{if(x&&!DB.cats['Extra'].includes(x))DB.cats['Extra'].push(x)});
+  delete DB.cats['Otros']; delete DB.icons['Otros'];
+  if(DB.limites['Otros']!==undefined){if(DB.limites['Extra']===undefined)DB.limites['Extra']=DB.limites['Otros'];delete DB.limites['Otros']}
+}
+/* 3) 500 € de ahorro salen de junio y se reparten: 100 a abril y 400 a mayo */
+function mig3(){
+  if(!DB.cats['Ahorro'])DB.cats['Ahorro']=[];
+  let pend=500;
+  DB.gastos.filter(g=>g.c==='Ahorro'&&(g.m||mkey(g.d))==='2026-06')
+    .sort((a,b)=>(+b.a||0)-(+a.a||0))
+    .forEach(g=>{if(pend<=0)return;const q=Math.min(pend,+g.a||0);g.a=+(((+g.a||0)-q).toFixed(2));pend-=q});
+  DB.gastos=DB.gastos.filter(g=>!(g.c==='Ahorro'&&(+g.a||0)<=0));
+  [['2026-04','2026-04-30',100],['2026-05','2026-05-31',400]].forEach(([mk,fe,imp])=>{
+    DB.gastos.push({id:uid(),d:fe,m:mk,c:'Ahorro',s:'Ahorro',t:'Ahorro del mes',a:imp});
+    if(DB.ingresos[mk]===undefined)DB.ingresos[mk]=0;
+  });
+  if(pend>0)setTimeout(()=>toast('Junio solo tenía '+(500-pend)+' € de ahorro'),900);
+}
 
 /* ============ utils ============ */
 const MES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -382,15 +425,17 @@ function donut(data,total,centro,sublabel){
 }
 function lineChart(series,labels){
   const W=340,H=162,PL=38,PR=10,PT=12,PB=26;
-  const max=Math.max(1,...series.flatMap(s=>s.vals));
+  const todos=series.flatMap(s=>s.vals);
+  const max=Math.max(1,...todos), min=Math.min(0,...todos);
   const x=i=>PL+i*((W-PL-PR)/Math.max(1,labels.length-1));
-  const y=v=>H-PB-(v/max)*(H-PT-PB);
+  const y=v=>H-PB-((v-min)/(max-min))*(H-PT-PB);
   let out='',dots='',grid='',ejeY='',ejeX='';
   for(let i=0;i<=3;i++){
-    const val=max*(1-i/3), yy=y(val);
+    const val=min+(max-min)*(1-i/3), yy=y(val);
     grid+=`<line x1="${PL}" y1="${yy.toFixed(1)}" x2="${W-PR}" y2="${yy.toFixed(1)}" stroke="rgba(255,255,255,.06)"/>`;
     ejeY+=`<text x="${PL-7}" y="${(yy+3.4).toFixed(1)}" text-anchor="end" font-size="9" fill="#5f6779" font-weight="700">${kfmt(val)}</text>`;
   }
+  if(min<0)grid+=`<line x1="${PL}" y1="${y(0).toFixed(1)}" x2="${W-PR}" y2="${y(0).toFixed(1)}" stroke="rgba(255,255,255,.28)" stroke-dasharray="3 3"/>`;
   labels.forEach((l,i)=>{ejeX+=`<text x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="#5f6779" font-weight="700">${esc(l)}</text>`});
   series.forEach(s=>{
     const d=s.vals.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join(' ');
@@ -431,6 +476,9 @@ function vInicio(){
   const anio=ms.filter(x=>x.startsWith(k.slice(0,4)));
   const totA=anio.reduce((t,x)=>t+sum(gmG(x)),0), ahoA=anio.reduce((t,x)=>t+sum(gmA(x)),0), ingA=anio.reduce((t,x)=>t+(+DB.ingresos[x]||0),0);
   const ult=[...DB.gastos].sort((a,b)=>(b.d+b.id).localeCompare(a.d+a.id)).slice(0,6);
+  const gastoCat={};cats.forEach(([c,v])=>gastoCat[c]=v);
+  const lims=Object.entries(DB.limites).filter(([c,l])=>+l>0&&DB.cats[c])
+    .sort((a,b)=>((gastoCat[b[0]]||0)/b[1])-((gastoCat[a[0]]||0)/a[1]));
   document.getElementById('htit').textContent='Inicio';
   document.getElementById('hsub').textContent='Hola Victor 👋 · '+mlab(k);
   return `<div class="stag">
@@ -461,6 +509,18 @@ function vInicio(){
      ${monthBars(k)}
    </div>
 
+   ${lims.length?`<div class="card">
+     <div class="ttl">Límites de ${mlab(k)} 🎯</div>
+     ${lims.map(([c,lim])=>{const v=gastoCat[c]||0,over=v>lim,pc=Math.min(100,v/lim*100);
+       return `<div class="row tap" data-cat="${esc(c)}">
+         <div class="ico" style="background:${ccolor(c)}22">${cicon(c)}</div>
+         <div class="rn"><b>${esc(c)}</b><span>${eur0(v)} de ${eur0(lim)} · ${(v/lim*100).toFixed(0)}%</span>
+           <div class="bar"><i data-w="${pc.toFixed(1)}" style="background:${over?'#ff5a6e':pc>80?'#f9a826':ccolor(c)}"></i></div></div>
+         <div class="ra" style="color:${over?'#ff8a97':'#4fe6ad'};font-size:13px">${over?'+'+eur0(v-lim):eur0(lim-v)}</div></div>`}).join('')}
+     <div class="mini" style="margin-top:10px">${(()=>{const t=lims.reduce((a,[c,l])=>a+l,0),g=lims.reduce((a,[c])=>a+(gastoCat[c]||0),0);
+       return `En conjunto llevas <b style="color:var(--tx)">${eur0(g)}</b> de <b style="color:var(--tx)">${eur0(t)}</b>`})()}</div>
+   </div>`:''}
+
    <div class="card">
      <div class="ttl">Últimos movimientos</div>
      ${ult.map(g=>`<div class="row"><div class="ico" style="background:${ccolor(g.c)}22">${cicon(g.c)}</div>
@@ -482,6 +542,10 @@ function vComparar(){
   const maxCell=Math.max(1,...cats.flatMap(c=>M[c]));
   const top=orden.slice(0,4).map(([c])=>({name:c,col:ccolor(c),vals:M[c]}));
 
+  const ingM=ms.map(k=>+DB.ingresos[k]||0);
+  const sobr=ms.map((k,i)=>ingM[i]-tots[i]-ahos[i]);
+  const totAho=ahos.reduce((a,b)=>a+b,0), totSob=sobr.reduce((a,b)=>a+b,0), totIng=ingM.reduce((a,b)=>a+b,0);
+
   let rows=orden.map(([c,t])=>{
     const tds=M[c].map(v=>{const it=v/maxCell;
       return `<td><span class="hm" style="background:${v?ccolor(c)+Math.round(18+it*150).toString(16).padStart(2,'0'):'transparent'};color:${it>.45?'#04120c':'var(--tx)'};font-weight:${v?700:400}">${v?eur0(v):'—'}</span></td>`}).join('');
@@ -500,12 +564,18 @@ function vComparar(){
    </div>
 
    <div class="card">
-     <div class="ttl">Ahorro por mes 🏦</div>
-     <div class="mini" style="margin-bottom:10px">No cuenta como gasto: es dinero que apartas.</div>
-     ${lineChart([{col:'#00c2ff',vals:ahos,name:'Ahorro apartado'}],ms.map(mlabc))}
+     <div class="ttl">Ahorro y sobrante por mes 🏦</div>
+     <div class="mini" style="margin-bottom:10px">Ninguno de los dos cuenta como gasto. <b style="color:#00c2ff">Ahorro</b> es lo que apartas a propósito; <b style="color:#f9a826">sobrante</b> es lo que te quedó sin gastar ni apartar.</div>
+     ${lineChart([{col:'#00c2ff',vals:ahos,name:'Ahorro apartado'},{col:'#f9a826',vals:sobr,name:'Sobrante'}],ms.map(mlabc))}
      <div class="row" style="margin-top:8px"><div class="ico" style="background:rgba(0,194,255,.14)">🏦</div>
-       <div class="rn"><b>Total ahorrado</b><span>${ms.length} meses</span></div>
-       <div class="ra" style="color:#00c2ff">${eur0(ahos.reduce((a,b)=>a+b,0))}</div></div>
+       <div class="rn"><b>Total apartado</b><span>${ms.length} meses</span></div>
+       <div class="ra" style="color:#00c2ff">${eur0(totAho)}</div></div>
+     <div class="row"><div class="ico" style="background:rgba(249,168,38,.14)">🪙</div>
+       <div class="rn"><b>Total sobrante</b><span>Sin gastar ni apartar</span></div>
+       <div class="ra" style="color:${totSob>=0?'#f9a826':'#ff8a97'}">${eur0(totSob)}</div></div>
+     <div class="row"><div class="ico" style="background:rgba(0,224,143,.14)">💰</div>
+       <div class="rn"><b>No gastado en total</b><span>Ahorro + sobrante · ${totIng>0?(( (totAho+totSob)/totIng*100).toFixed(0)):'0'}% de tus ingresos</span></div>
+       <div class="ra" style="color:#4fe6ad">${eur0(totAho+totSob)}</div></div>
    </div>
 
    <div class="card">
@@ -557,11 +627,15 @@ function vMeses(){
    </div>
    <div class="card">
      <div class="ttl">Categorías · toca para ver el detalle</div>
-     ${cats.map(([c,v])=>`<div class="row tap" data-cat="${esc(c)}">
+     ${cats.map(([c,v])=>{const lim=+DB.limites[c]||0,over=lim>0&&v>lim;
+       const pc=lim>0?Math.min(100,v/lim*100):(tot?v/tot*100:0);
+       return `<div class="row tap" data-cat="${esc(c)}">
        <div class="ico" style="background:${ccolor(c)}22">${cicon(c)}</div>
-       <div class="rn"><b>${esc(c)}</b><span>${gs.filter(g=>g.c===c).length} mov. · ${(v/tot*100).toFixed(0)}%</span>
-         <div class="bar"><i data-w="${(v/tot*100).toFixed(1)}" style="background:${ccolor(c)}"></i></div></div>
-       <div class="ra">${eur0(v)}</div></div>`).join('')||'<div class="empty">Nada por aquí</div>'}
+       <div class="rn"><b>${esc(c)}${over?' <i class="pill up" style="font-size:10px">🎯 pasado</i>':''}</b>
+         <span>${gs.filter(g=>g.c===c).length} mov. · ${lim>0?`${(v/lim*100).toFixed(0)}% de ${eur0(lim)}`:`${(v/tot*100).toFixed(0)}% del mes`}</span>
+         <div class="bar"><i data-w="${pc.toFixed(1)}" style="background:${over?'#ff5a6e':ccolor(c)}"></i></div></div>
+       <div class="ra" style="${over?'color:#ff8a97':''}">${eur0(v)}
+         ${lim>0?`<div class="mini" style="text-align:right;font-weight:600">${over?'+'+eur0(v-lim):eur0(lim-v)+' libre'}</div>`:''}</div></div>`}).join('')||'<div class="empty">Nada por aquí</div>'}
    </div>
    <div class="card">
      <div class="ttl">Todos los movimientos</div>
@@ -587,7 +661,7 @@ function vAdd(){
   document.getElementById('hsub').textContent='Rápido, manual o varios de golpe';
   const hoy=new Date().toISOString().slice(0,10);
   const cs=Object.keys(DB.cats);
-  if(!ADD.c||!DB.cats[ADD.c])ADD.c=cs[0]||'Otros';
+  if(!ADD.c||!DB.cats[ADD.c])ADD.c=cs[0]||'Extra';
   if(!ADD.s||!subList(ADD.c).includes(ADD.s))ADD.s=subList(ADD.c)[0];
   const subsAll=[...new Set(Object.values(DB.cats).flat())].sort();
   const frec=[...new Map(DB.gastos.slice(-90).reverse().map(g=>[g.t+'|'+g.c,g])).values()].slice(0,6);
@@ -674,7 +748,7 @@ function parseLote(txt,defDate,defCat){
 function lotePrev(){
   const ta=document.getElementById('f-lote');if(!ta)return;
   const d=document.getElementById('f-ld').value||new Date().toISOString().slice(0,10);
-  let c=(document.getElementById('f-lc').value||'').trim()||'Otros';
+  let c=(document.getElementById('f-lc').value||'').trim()||'Extra';
   const k=Object.keys(DB.cats).find(x=>norm(x)===norm(c));if(k)c=k;
   LOTE=parseLote(ta.value,d,c);
   const ok=LOTE.filter(x=>!x.err), bad=LOTE.length-ok.length;
@@ -707,6 +781,15 @@ function vAjustes(){
        <div class="rn"><b>${esc(c)}</b><span>${subs.length?subs.map(esc).join(' · '):'sin subcategorías'}</span></div>
        <div class="ra" style="color:var(--tx3);font-size:18px">›</div></div>`).join('')}
      <button class="btn gh" id="add-cat" style="margin-top:14px">＋ Nueva categoría</button>
+   </div>
+   <div class="card">
+     <div class="ttl">Límites mensuales 🎯</div>
+     <div class="mini" style="margin-bottom:12px">Tope de gasto al mes por categoría. Déjalo en 0 para no ponerle límite.</div>
+     ${Object.keys(DB.cats).filter(c=>!NOGASTO.includes(c)).map(c=>`<div class="row">
+       <div class="ico" style="background:${ccolor(c)}22">${cicon(c)}</div>
+       <div class="rn"><b>${esc(c)}</b><span>${+DB.limites[c]>0?'Tope '+eur0(DB.limites[c])+' al mes':'Sin límite'}</span></div>
+       <input style="width:100px;text-align:right;padding:9px 11px;font-size:14px" type="number" step="5" min="0" inputmode="decimal" value="${+DB.limites[c]||0}" data-lim="${esc(c)}"></div>`).join('')}
+     <div class="mini" style="margin-top:12px">Total de los topes: <b style="color:var(--tx)">${eur0(Object.keys(DB.cats).reduce((t,c)=>t+(+DB.limites[c]||0),0))}</b> al mes</div>
    </div>
    <div class="card">
      <div class="ttl">Datos</div>
@@ -776,11 +859,13 @@ function nuevaSub(c){openSheet(`<div class="sht">Nueva subcategoría</div>
    <div class="mini" style="margin:-10px 0 16px">Dentro de ${cicon(c)} ${esc(c)}</div>
    <div class="fg"><input id="ns-n" placeholder="Ej. Supermercado" autocomplete="off"></div>
    <button class="btn" id="ns-go" data-forcat="${esc(c)}">Añadir</button>`)}
-function editCat(c){EDITC={o:c,n:c,i:cicon(c),subs:(DB.cats[c]||[]).slice()};openSheet(catSheet())}
+function editCat(c){EDITC={o:c,n:c,i:cicon(c),subs:(DB.cats[c]||[]).slice(),lim:+DB.limites[c]||0};openSheet(catSheet())}
 function catSheet(){const E=EDITC;
   return `<div class="sht">Editar categoría</div>
    <div class="f2"><div class="fg"><label>Nombre</label><input id="ec-n" value="${esc(E.n)}" autocomplete="off"></div>
    <div class="fg"><label>Icono</label><input id="ec-i" value="${esc(E.i)}" maxlength="4" style="text-align:center;font-size:22px"></div></div>
+   <div class="fg"><label>Límite al mes (€) · 0 = sin límite</label>
+     <input id="ec-l" type="number" step="5" min="0" inputmode="decimal" value="${E.lim||0}"></div>
    <label>Subcategorías</label>
    <div class="tags" id="ec-tags">${E.subs.length?E.subs.map(x=>`<span class="tg">${esc(x)}<b data-rmsub="${esc(x)}">✕</b></span>`).join(''):'<span class="mini">Ninguna todavía</span>'}</div>
    <div style="display:flex;gap:8px;margin:13px 0 18px">
@@ -788,8 +873,9 @@ function catSheet(){const E=EDITC;
      <button class="btn" id="ec-add" style="width:auto;padding:0 20px;box-shadow:none">＋</button></div>
    <button class="btn" id="ec-save">Guardar cambios</button>
    <button class="btn dg" id="ec-del" style="margin-top:10px">Eliminar categoría</button>`}
-function syncEdit(){const n=document.getElementById('ec-n'),i=document.getElementById('ec-i');
-  if(n)EDITC.n=n.value.trim()||EDITC.o; if(i)EDITC.i=i.value.trim()||EDITC.i}
+function syncEdit(){const n=document.getElementById('ec-n'),i=document.getElementById('ec-i'),l=document.getElementById('ec-l');
+  if(n)EDITC.n=n.value.trim()||EDITC.o; if(i)EDITC.i=i.value.trim()||EDITC.i;
+  if(l)EDITC.lim=Math.max(0,+l.value||0)}
 
 function detalleCat(c,k){
   const ms=months();
@@ -866,8 +952,12 @@ document.addEventListener('change',e=>{
   if(e.target.id==='f-c'){const v=e.target.value.trim();if(DB.cats[v]){ADD.c=v;ADD.s=subList(v)[0];
     const fs=document.getElementById('f-s');if(fs&&!fs.value)fs.value=ADD.s}}
   if(e.target.dataset.ing!==undefined){DB.ingresos[e.target.dataset.ing]=+e.target.value||0;save();toast('Ingresos actualizados')}
+  if(e.target.dataset.lim!==undefined){const c=e.target.dataset.lim,v=Math.max(0,+e.target.value||0);
+    if(v>0)DB.limites[c]=v;else delete DB.limites[c];
+    save();toast(v>0?'Límite de '+c+': '+eur0(v):'Límite quitado');
+    const fila=e.target.closest('.row');if(fila){const sp=fila.querySelector('.rn span');if(sp)sp.textContent=v>0?'Tope '+eur0(v)+' al mes':'Sin límite'}}
   if(e.target.id==='fimp'&&e.target.files[0]){const r=new FileReader();
-    r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.gastos)throw 0;DB=d;DB.icons=DB.icons||{};save();render();toast('Copia importada')}
+    r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.gastos)throw 0;DB=d;migrar();save();render();toast('Copia importada')}
       catch(err){toast('Archivo no válido')}};r.readAsText(e.target.files[0])}
 });
 
@@ -880,7 +970,7 @@ document.addEventListener('click',e=>{
     const d=document.getElementById('f-d').value||new Date().toISOString().slice(0,10);
     let c,sb;
     if(ADD.modo==='manual'){
-      c=(document.getElementById('f-c').value||'').trim()||'Otros';
+      c=(document.getElementById('f-c').value||'').trim()||'Extra';
       const k=Object.keys(DB.cats).find(x=>norm(x)===norm(c));if(k)c=k;
       sb=(document.getElementById('f-s').value||'').trim()||c;
       const ks=subList(c).find(x=>norm(x)===norm(sb));if(ks)sb=ks;
@@ -928,11 +1018,13 @@ document.addEventListener('click',e=>{
     DB.cats=out;
     if(n!==o){DB.gastos.forEach(g=>{if(g.c===o)g.c=n});delete DB.icons[o]}
     DB.icons[n]=EDITC.i;
+    delete DB.limites[o];
+    if(EDITC.lim>0)DB.limites[n]=EDITC.lim;
     if(ADD.c===o)ADD.c=n;
     EDITC=null;save();closeSheet();render();toast('Categoría guardada');return}
   if(id==='ec-del'&&EDITC){const c=EDITC.o;
     ask('¿Eliminar la categoría «'+c+'»? Los gastos ya apuntados se conservan.',()=>{
-      delete DB.cats[c];delete DB.icons[c];EDITC=null;save();render();toast('Categoría eliminada')},'Sí, eliminar');return}
+      delete DB.cats[c];delete DB.icons[c];delete DB.limites[c];EDITC=null;save();render();toast('Categoría eliminada')},'Sí, eliminar');return}
   /* --- meses e ingresos --- */
   if(id==='add-mes'){openSheet(`<div class="sht">Añadir un mes</div>
     <div class="fg"><label>Mes</label><input id="am-k" type="month" value="${new Date().toISOString().slice(0,7)}"></div>
@@ -950,8 +1042,11 @@ document.addEventListener('click',e=>{
       [...DB.gastos].sort((a,b)=>a.d.localeCompare(b.d)).map(g=>[g.d,g.c,g.s,g.t,String(g.a).replace('.',',')]));
     dl('mis-gastos.csv','\ufeff'+rows.map(r=>r.map(x=>'"'+String(x==null?'':x).replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv');return}
   if(id==='imp'){document.getElementById('fimp').click();return}
-  if(id==='rst'){ask('Se borrarán los gastos que hayas añadido y volverá el histórico original de los Excel.',()=>{
-    localStorage.removeItem(KEY);load();render();toast('Datos restaurados')},'Sí, restaurar');return}
+  if(id==='rst'){
+    if(ENC&&!DATA){ask('Para traer el histórico original hay que descifrar el archivo, así que se te pedirá el PIN. Tus datos actuales NO se tocan hasta que lo aciertes.',()=>{
+      sessionStorage.setItem('restaurar','1');location.reload()},'Pedir el PIN');return}
+    ask('Se borrarán los gastos que hayas añadido y volverá el histórico original de los Excel.',()=>{
+      localStorage.removeItem(KEY);load();render();toast('Datos restaurados')},'Sí, restaurar');return}
 });
 
 function dl(name,txt,mime){const b=new Blob([txt],{type:mime}),u=URL.createObjectURL(b);
@@ -969,22 +1064,59 @@ async function descifrar(e,p){
   const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(e.i)},k,b64d(e.d));
   return JSON.parse(new TextDecoder().decode(pt));
 }
+/* --- control de intentos: 5 fallos = 24 h bloqueado en este dispositivo --- */
+const LKEY='misgastos_lock', MAXINT=5, BLOQUEO=24*60*60*1000;
+function lkGet(){try{const s=JSON.parse(localStorage.getItem(LKEY));return s&&typeof s==='object'?s:{n:0,until:0}}catch(e){return{n:0,until:0}}}
+function lkSet(s){try{localStorage.setItem(LKEY,JSON.stringify(s))}catch(e){}}
+function lkClear(){try{localStorage.removeItem(LKEY)}catch(e){}}
+function restante(ms){
+  const h=Math.floor(ms/3600000), m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);
+  return h>0?h+' h '+String(m).padStart(2,'0')+' min':(m>0?m+' min '+String(s).padStart(2,'0')+' s':s+' s');
+}
+function bloqueado(hasta){
+  const ico=document.querySelector('.lkico'), tit=document.querySelector('.lkt');
+  const sub=document.getElementById('lk-s'), form=document.getElementById('lk-form'), pie=document.getElementById('lk-f');
+  ico.textContent='⛔'; ico.style.background='linear-gradient(135deg,#ff5a6e,#8b5cf6)';
+  ico.style.boxShadow='0 10px 34px rgba(255,90,110,.35)';
+  tit.textContent='Bloqueado';
+  form.style.display='none';
+  pie.innerHTML='Se han agotado los '+MAXINT+' intentos.<br>El bloqueo solo afecta a este dispositivo.';
+  const pinta=()=>{
+    const q=hasta-Date.now();
+    if(q<=0){lkClear();location.reload();return}
+    sub.innerHTML='Demasiados intentos fallidos.<br>Vuelve a probar dentro de <b style="color:#ff8a97">'+restante(q)+'</b>';
+    setTimeout(pinta,1000);
+  };
+  pinta();
+}
 function lock(){
   const el=document.getElementById('lock');el.style.display='grid';
+  const st=lkGet();
+  if(st.until&&st.until>Date.now()){bloqueado(st.until);return}
+  if(st.until&&st.until<=Date.now())lkClear();
   const inp=document.getElementById('lk-p'),btn=document.getElementById('lk-go'),msg=document.getElementById('lk-m');
+  const quedan=()=>MAXINT-(lkGet().n||0);
+  if(quedan()<MAXINT)msg.textContent=quedan()===1?'Te queda 1 intento':'Te quedan '+quedan()+' intentos';
   const go=async()=>{
     if(!inp.value)return;
     btn.disabled=true;btn.textContent='Descifrando…';msg.textContent='';
     try{
       DATA=await descifrar(ENC,inp.value);
+      lkClear();
+      /* si venimos de "restaurar", ahora si es seguro borrar lo guardado */
+      if(sessionStorage.getItem('restaurar')){sessionStorage.removeItem('restaurar');localStorage.removeItem(KEY)}
       el.style.opacity='0';setTimeout(()=>el.style.display='none',380);
       boot();
     }catch(err){
-      msg.textContent='PIN incorrecto';inp.value='';btn.disabled=false;btn.textContent='Desbloquear';
+      const s=lkGet(); s.n=(s.n||0)+1;
+      if(navigator.vibrate)navigator.vibrate([40,60,40]);
       el.querySelector('.lkbox').animate([{transform:'translateX(0)'},{transform:'translateX(-10px)'},
         {transform:'translateX(10px)'},{transform:'translateX(0)'}],{duration:320});
-      if(navigator.vibrate)navigator.vibrate([40,60,40]);
-      inp.focus();
+      if(s.n>=MAXINT){s.n=0;s.until=Date.now()+BLOQUEO;lkSet(s);bloqueado(s.until);return}
+      lkSet(s);
+      const q=MAXINT-s.n;
+      msg.textContent='PIN incorrecto · te queda'+(q===1?' 1 intento':'n '+q+' intentos');
+      inp.value='';btn.disabled=false;btn.textContent='Desbloquear';inp.focus();
     }
   };
   btn.onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go()};
@@ -993,7 +1125,7 @@ function lock(){
 
 /* ============ init ============ */
 function boot(){load();history.replaceState({v:'inicio',mes:null,sheet:0},'');render('inicio')}
-if(ENC && !localStorage.getItem(KEY)) lock(); else boot();
+if(ENC && (!localStorage.getItem(KEY)||sessionStorage.getItem('restaurar'))) lock(); else boot();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>

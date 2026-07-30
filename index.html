@@ -328,13 +328,14 @@ function load(){
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){toast('No se pudo guardar')}}
 
 /* ---- migraciones de estructura (se aplican una sola vez) ---- */
-const MIG=3;
+const MIG=4;
 function migrar(){
   DB.icons=DB.icons||{}; DB.limites=DB.limites||{}; DB.cats=DB.cats||{};
   const v=DB.mig||0;
   if(v>=MIG)return;
   if(v<2)mig2();
   if(v<3)mig3();
+  if(v<4)mig4();
   DB.mig=MIG;
   save();
 }
@@ -365,6 +366,33 @@ function mig3(){
     if(DB.ingresos[mk]===undefined)DB.ingresos[mk]=0;
   });
   if(pend>0)setTimeout(()=>toast('Junio solo tenía '+(500-pend)+' € de ahorro'),900);
+}
+/* 4) Julio 2026 se apuntó solo en un dispositivo: lo repone en los demás.
+      Si el mes ya tiene movimientos aquí, no toca nada (no duplica). */
+const JULIO=[
+  ['Alimentacion','Comida fuera','Comida fuera',67.50],
+  ['Alimentacion','Cafe diario','Cafe',10.40],
+  ['Alimentacion','Maquina','Maquina',123.34],
+  ['Deporte y Salud','Gimnasio','Gimnasio',45],
+  ['Ocio','Suscripciones','Suscripciones',22],
+  ['Ocio','Play 5','Play 5',20],
+  ['Tabaco','Tabaco regular','Tabaco',68.75],
+  ['Transporte','Transporte publico','Transporte publico',525],
+  ['Transporte','Gasolina','Repostaje',110],
+  ['Efectivo','Efectivo','Gastos en efectivo del mes',20],
+  ['Extra','Extra','Gastos extra del mes',58],
+  ['Ahorro','Ahorro','Ahorro del mes',1200]
+];
+function mig4(){
+  const yaHay=DB.gastos.some(g=>(g.m||mkey(g.d))==='2026-07');
+  if(yaHay)return;
+  JULIO.forEach(([c,s,t,a],i)=>{
+    if(!DB.cats[c])DB.cats[c]=[];
+    if(s!==c&&!DB.cats[c].includes(s))DB.cats[c].push(s);
+    DB.gastos.push({id:'j7-'+i,d:'2026-07-31',m:'2026-07',c:c,s:s,t:t,a:a});
+  });
+  if(!DB.ingresos['2026-07'])DB.ingresos['2026-07']=3090;
+  setTimeout(()=>toast('Julio recuperado: 12 movimientos'),900);
 }
 
 /* ============ utils ============ */

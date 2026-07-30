@@ -298,13 +298,11 @@ textarea{min-height:140px;resize:vertical;line-height:1.55;font-size:15px}
   <div class="lkbox">
     <div class="lkico">🔒</div>
     <div class="lkt">Mis Gastos</div>
-    <div class="lks" id="lk-s">Introduce tu PIN para descifrar tus datos</div>
-    <div id="lk-form">
-      <input id="lk-p" type="password" inputmode="numeric" autocomplete="off" placeholder="••••">
-      <div id="lk-m" class="lkerr"></div>
-      <button id="lk-go" class="btn">Desbloquear</button>
-    </div>
-    <div class="lkf" id="lk-f">Tus datos están cifrados en este archivo.<br>Sin el PIN no se pueden leer.</div>
+    <div class="lks">Introduce tu PIN para descifrar tus datos</div>
+    <input id="lk-p" type="password" inputmode="numeric" autocomplete="off" placeholder="••••">
+    <div id="lk-m" class="lkerr"></div>
+    <button id="lk-go" class="btn">Desbloquear</button>
+    <div class="lkf">Tus datos están cifrados en este archivo.<br>Sin el PIN no se pueden leer.</div>
   </div>
 </div>
 
@@ -1064,59 +1062,26 @@ async function descifrar(e,p){
   const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(e.i)},k,b64d(e.d));
   return JSON.parse(new TextDecoder().decode(pt));
 }
-/* --- control de intentos: 5 fallos = 24 h bloqueado en este dispositivo --- */
-const LKEY='misgastos_lock', MAXINT=5, BLOQUEO=24*60*60*1000;
-function lkGet(){try{const s=JSON.parse(localStorage.getItem(LKEY));return s&&typeof s==='object'?s:{n:0,until:0}}catch(e){return{n:0,until:0}}}
-function lkSet(s){try{localStorage.setItem(LKEY,JSON.stringify(s))}catch(e){}}
-function lkClear(){try{localStorage.removeItem(LKEY)}catch(e){}}
-function restante(ms){
-  const h=Math.floor(ms/3600000), m=Math.floor(ms%3600000/60000), s=Math.floor(ms%60000/1000);
-  return h>0?h+' h '+String(m).padStart(2,'0')+' min':(m>0?m+' min '+String(s).padStart(2,'0')+' s':s+' s');
-}
-function bloqueado(hasta){
-  const ico=document.querySelector('.lkico'), tit=document.querySelector('.lkt');
-  const sub=document.getElementById('lk-s'), form=document.getElementById('lk-form'), pie=document.getElementById('lk-f');
-  ico.textContent='⛔'; ico.style.background='linear-gradient(135deg,#ff5a6e,#8b5cf6)';
-  ico.style.boxShadow='0 10px 34px rgba(255,90,110,.35)';
-  tit.textContent='Bloqueado';
-  form.style.display='none';
-  pie.innerHTML='Se han agotado los '+MAXINT+' intentos.<br>El bloqueo solo afecta a este dispositivo.';
-  const pinta=()=>{
-    const q=hasta-Date.now();
-    if(q<=0){lkClear();location.reload();return}
-    sub.innerHTML='Demasiados intentos fallidos.<br>Vuelve a probar dentro de <b style="color:#ff8a97">'+restante(q)+'</b>';
-    setTimeout(pinta,1000);
-  };
-  pinta();
-}
 function lock(){
+  /* por si algun dispositivo guardo un bloqueo de la version anterior */
+  try{localStorage.removeItem('misgastos_lock')}catch(e){}
   const el=document.getElementById('lock');el.style.display='grid';
-  const st=lkGet();
-  if(st.until&&st.until>Date.now()){bloqueado(st.until);return}
-  if(st.until&&st.until<=Date.now())lkClear();
   const inp=document.getElementById('lk-p'),btn=document.getElementById('lk-go'),msg=document.getElementById('lk-m');
-  const quedan=()=>MAXINT-(lkGet().n||0);
-  if(quedan()<MAXINT)msg.textContent=quedan()===1?'Te queda 1 intento':'Te quedan '+quedan()+' intentos';
   const go=async()=>{
     if(!inp.value)return;
     btn.disabled=true;btn.textContent='Descifrando…';msg.textContent='';
     try{
       DATA=await descifrar(ENC,inp.value);
-      lkClear();
       /* si venimos de "restaurar", ahora si es seguro borrar lo guardado */
       if(sessionStorage.getItem('restaurar')){sessionStorage.removeItem('restaurar');localStorage.removeItem(KEY)}
       el.style.opacity='0';setTimeout(()=>el.style.display='none',380);
       boot();
     }catch(err){
-      const s=lkGet(); s.n=(s.n||0)+1;
-      if(navigator.vibrate)navigator.vibrate([40,60,40]);
+      msg.textContent='PIN incorrecto';inp.value='';btn.disabled=false;btn.textContent='Desbloquear';
       el.querySelector('.lkbox').animate([{transform:'translateX(0)'},{transform:'translateX(-10px)'},
         {transform:'translateX(10px)'},{transform:'translateX(0)'}],{duration:320});
-      if(s.n>=MAXINT){s.n=0;s.until=Date.now()+BLOQUEO;lkSet(s);bloqueado(s.until);return}
-      lkSet(s);
-      const q=MAXINT-s.n;
-      msg.textContent='PIN incorrecto · te queda'+(q===1?' 1 intento':'n '+q+' intentos');
-      inp.value='';btn.disabled=false;btn.textContent='Desbloquear';inp.focus();
+      if(navigator.vibrate)navigator.vibrate([40,60,40]);
+      inp.focus();
     }
   };
   btn.onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go()};

@@ -168,7 +168,7 @@ tbody tr.tot{border-top:1.5px solid rgba(255,255,255,.2);font-weight:800}
 .tip .r{display:flex;align-items:center;gap:7px;font-size:12px;margin-top:4px;white-space:nowrap}
 .tip .r .nm{color:var(--tx2);max-width:96px;overflow:hidden;text-overflow:ellipsis}
 .tip .r .v{margin-left:auto;font-weight:750;font-variant-numeric:tabular-nums}
-.tip .dv{font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;margin-left:2px}
+.tip .dv{font-size:10px;font-weight:700;font-variant-numeric:tabular-nums;margin-left:5px;opacity:.85}
 .tip .up{color:#ff8a97}.tip .dn{color:#4fe6ad}.tip .eq{color:var(--tx3)}
 .tip .sep{height:1px;background:rgba(255,255,255,.1);margin:7px 0 2px}
 .lch path.ln{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
@@ -265,8 +265,9 @@ nav button:active{transform:scale(.9)}
 .bw.sel .bv{color:var(--tx)}
 /* selector segmentado */
 .seg{display:flex;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:5px;margin-bottom:14px}
-.seg button{flex:1;border:0;background:0;color:var(--tx2);font-family:inherit;font-size:13px;font-weight:700;
-  padding:10px 6px;border-radius:12px;cursor:pointer;transition:.25s}
+.seg button{flex:1;min-width:0;border:0;background:0;color:var(--tx2);font-family:inherit;font-size:12.5px;font-weight:700;
+  padding:10px 3px;border-radius:12px;cursor:pointer;transition:.25s;white-space:nowrap;letter-spacing:-.01em}
+@media (max-width:360px){.seg{gap:3px;padding:4px}.seg button{font-size:11.5px}}
 .seg button.on{background:var(--grad);color:#04120c;box-shadow:0 6px 18px rgba(0,224,143,.25)}
 .seg button:active{transform:scale(.96)}
 /* pickers de categoria */
@@ -347,6 +348,7 @@ function save(){DB.cfgU=Date.now();try{localStorage.setItem(KEY,JSON.stringify(D
 const MIG=4;
 function migrar(){
   DB.icons=DB.icons||{}; DB.limites=DB.limites||{}; DB.cats=DB.cats||{}; DB.borrados=DB.borrados||{};
+  DB.fijos=Array.isArray(DB.fijos)?DB.fijos:[];
   const v=DB.mig||0;
   if(v>=MIG)return;
   if(v<2)mig2();
@@ -497,7 +499,7 @@ function lineChart(series,labels,opt){
   });
 
   /* datos que necesita la capa interactiva */
-  const meta={W,H,PL,PR,PT,PB,min,max,labels,dif:opt.dif||'',
+  const meta={W,H,PL,PR,PT,PB,min,max,labels,dif:opt.dif||'',suma:opt.suma||'',
     series:series.map(s=>({n:s.name||'',c:s.col,v:s.vals}))};
 
   const con=series.filter(s=>s.name);
@@ -551,20 +553,28 @@ function tipOn(sv,clientX){
   let filas='';
   m.series.forEach(s=>{
     const v=s.v[i], pv=i>0?s.v[i-1]:null;
+    /* la variacion va pegada al valor, nunca en una linea aparte:
+       en su propio renglon se confunde con un importe */
     let dif='';
     if(pv!=null){
       const d=v-pv, cl=Math.abs(d)<0.005?'eq':(d>0?'up':'dn');
-      dif=`<span class="dv ${cl}">${d>0?'▲':d<0?'▼':'='} ${eur0(Math.abs(d))}</span>`;
+      dif=`<span class="dv ${cl}">${d>0?'▲':d<0?'▼':'='}${eur0(Math.abs(d))}</span>`;
     }
     filas+=`<div class="r"><i class="dot" style="background:${s.c}"></i>
-      <span class="nm">${esc(s.n||'valor')}</span><span class="v">${eur(v)}</span></div>
-      ${dif?`<div class="r" style="margin-top:1px"><span class="nm" style="opacity:0">·</span>
-      <span class="v" style="font-weight:600">${dif}</span></div>`:''}`;
+      <span class="nm">${esc(s.n||'valor')}</span>
+      <span class="v">${eur(v)}${dif}</span></div>`;
   });
+  /* solo se resta cuando las dos series son comparables (ingresos vs gastos).
+     Si son cosas independientes, como ahorro y sobrante, se suman. */
   if(m.series.length>1&&m.dif){
     const a=m.series[0].v[i], b=m.series[1].v[i], d=b-a;
     filas+=`<div class="sep"></div><div class="r"><span class="nm">${esc(m.dif)}</span>
-      <span class="v ${d>=0?'':''}" style="color:${d>=0?'#4fe6ad':'#ff8a97'}">${eur0(Math.abs(d))}</span></div>`;
+      <span class="v" style="color:${d>=0?'#4fe6ad':'#ff8a97'}">${eur0(Math.abs(d))}</span></div>`;
+  }
+  if(m.series.length>1&&m.suma){
+    const t=m.series.reduce((a,s)=>a+(+s.v[i]||0),0);
+    filas+=`<div class="sep"></div><div class="r"><span class="nm">${esc(m.suma)}</span>
+      <span class="v" style="color:#4fe6ad">${eur0(t)}</span></div>`;
   }
 
   const tip=sv.parentNode.querySelector('.tip');
@@ -612,6 +622,44 @@ function monthBars(sel){
       <span class="lgi" style="margin-left:auto">Máx <span class="e">${eur0(max)}</span> · Media <span class="e">${eur0(med)}</span></span>
     </div>
     <div class="mini" style="margin-top:5px">Cifras en € (k = miles) · toca una barra para abrir el mes</div>`;
+}
+
+/* ============ gastos fijos (mensuales) ============ */
+const mesHoy=()=>new Date().toISOString().slice(0,7);
+function ms12(k){let[y,m]=k.split('-').map(Number);m--;if(m<1){m=12;y--}return y+'-'+String(m).padStart(2,'0')}
+function mesSig(k){let[y,m]=k.split('-').map(Number);m++;if(m>12){m=1;y++}return y+'-'+String(m).padStart(2,'0')}
+function diasMes(k){return new Date(+k.slice(0,4),+k.slice(5,7),0).getDate()}
+const fijoActivo=f=>!f.hasta;
+
+/* Crea los gastos que tocan y que aun no existen.
+   El id es siempre el mismo para un fijo y un mes, asi que ni se duplica
+   al sincronizar dos moviles ni reaparece si el usuario lo borra a mano. */
+function generarFijos(){
+  if(!Array.isArray(DB.fijos)||!DB.fijos.length)return 0;
+  const hoy=new Date(), mAct=mesHoy(), diaHoy=hoy.getDate();
+  const hay=new Set(DB.gastos.map(g=>g.id));
+  let n=0;
+  DB.fijos.forEach(f=>{
+    if(!f||!f.id||!(+f.a>0))return;
+    let k=f.desde||mAct;
+    const fin=(f.hasta&&f.hasta<mAct)?f.hasta:mAct;
+    let tope=0;
+    while(k<=fin&&tope++<400){
+      const dia=Math.min(Math.max(1,+f.dia||1),diasMes(k));
+      const gid='fx'+f.id+'-'+k;
+      const yaToca=(k<mAct)||(dia<=diaHoy);
+      if(yaToca&&!hay.has(gid)&&!(DB.borrados&&DB.borrados[gid])){
+        ensureCat(f.c,f.s);
+        DB.gastos.push({id:gid,fx:f.id,d:k+'-'+String(dia).padStart(2,'0'),m:k,
+          c:f.c,s:f.s||f.c,t:f.t||'',a:+(+f.a).toFixed(2),u:Date.now()});
+        if(DB.ingresos[k]===undefined)DB.ingresos[k]=0;
+        hay.add(gid); n++;
+      }
+      k=mesSig(k);
+    }
+  });
+  if(n)save();
+  return n;
 }
 
 /* ============ vistas ============ */
@@ -725,8 +773,8 @@ function vComparar(){
 
    <div class="card">
      <div class="ttl">Ahorro y sobrante por mes 🏦</div>
-     <div class="mini" style="margin-bottom:10px">Ninguno de los dos cuenta como gasto. <b style="color:#00c2ff">Ahorro</b> es lo que apartas a propósito; <b style="color:#f9a826">sobrante</b> es lo que te quedó sin gastar ni apartar.</div>
-     ${lineChart([{col:'#00c2ff',vals:ahos,name:'Ahorro apartado'},{col:'#f9a826',vals:sobr,name:'Sobrante'}],ms.map(mlabc),{dif:'Diferencia'})}
+     <div class="mini" style="margin-bottom:10px">Ninguno de los dos cuenta como gasto y son cosas independientes, no se restan entre sí. <b style="color:#00c2ff">Ahorro</b> es lo que apartas a propósito; <b style="color:#f9a826">sobrante</b> es lo que te quedó sin gastar ni apartar. Juntos son todo el dinero que no gastaste ese mes.</div>
+     ${lineChart([{col:'#00c2ff',vals:ahos,name:'Ahorro apartado'},{col:'#f9a826',vals:sobr,name:'Sobrante'}],ms.map(mlabc),{suma:'Total no gastado'})}
      <div class="row" style="margin-top:8px"><div class="ico" style="background:rgba(0,194,255,.14)">🏦</div>
        <div class="rn"><b>Total apartado</b><span>${ms.length} meses</span></div>
        <div class="ra" style="color:#00c2ff">${eur0(totAho)}</div></div>
@@ -852,6 +900,7 @@ function vAdd(){
      <button type="button" data-modo="rapido" class="${ADD.modo==='rapido'?'on':''}">⚡ Rápido</button>
      <button type="button" data-modo="manual" class="${ADD.modo==='manual'?'on':''}">✍️ Manual</button>
      <button type="button" data-modo="lote" class="${ADD.modo==='lote'?'on':''}">📝 Varios</button>
+     <button type="button" data-modo="fijo" class="${ADD.modo==='fijo'?'on':''}">🔁 Fijo</button>
    </div>`;
   const dlc=`<datalist id="dl-c">${cs.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`;
 
@@ -873,6 +922,63 @@ function vAdd(){
      <div id="lote-prev"></div>
    </div>
   </div>`;
+
+  /* ---- gasto fijo mensual ---- */
+  if(ADD.modo==='fijo'){
+    const mAct=mesHoy();
+    const opts=[];
+    let k=mAct; for(let i=0;i<12;i++){opts.unshift(k);k=ms12(k)}
+    const fijos=(DB.fijos||[]).slice().sort((a,b)=>(b.a||0)-(a.a||0));
+    const act=fijos.filter(fijoActivo), can=fijos.filter(f=>!fijoActivo(f));
+    const totAct=act.reduce((t,f)=>t+(+f.a||0),0);
+
+    const fila=(f,activo)=>{
+      const gs=DB.gastos.filter(g=>g.fx===f.id);
+      const veces=gs.length;
+      return `<div class="row"${activo?'':' style="opacity:.62"'}>
+        <div class="ico" style="background:${ccolor(f.c)}22">${cicon(f.c)}</div>
+        <div class="rn"><b>${esc(f.t||f.s||f.c)}</b>
+          <span>${activo?`Cada día ${f.dia} · desde ${esc(mlab(f.desde))}`
+                        :`De ${esc(mlab(f.desde))} a ${esc(mlab(f.hasta))}`}${veces?` · ${veces} ${veces===1?'mes':'meses'}`:''}</span></div>
+        <div class="ra" style="text-align:right">${eur0(f.a)}<br>
+          <button type="button" class="pill ${activo?'up':'dn'}" style="border:0;cursor:pointer;font-family:inherit"
+            data-${activo?'fcan':'frea'}="${esc(f.id)}">${activo?'Cancelar':'Reactivar'}</button></div></div>`;
+    };
+
+    return `<div class="stag">${seg}
+     <div class="card">
+       <div class="ttl">Nuevo gasto fijo mensual</div>
+       <div class="mini" style="margin-bottom:12px">Se registra solo cada mes el día que elijas, sin que tengas que hacer nada. Cuando lo canceles deja de registrarse, pero los meses que ya pagaste se quedan en tus cuentas.</div>
+       <div class="fg"><label>Importe al mes</label><input class="amt" id="f-a" type="text" inputmode="decimal" placeholder="0,00"></div>
+       <div class="qk">${[1,5,10,20,50].map(n=>`<button type="button" data-plus="${n}">+${n} €</button>`).join('')}<button type="button" data-plus="clr">C</button></div>
+       <label>Categoría</label><div id="pk-c" style="margin-bottom:15px">${catPicker()}</div>
+       <label>Subcategoría</label><div id="pk-s" style="margin-bottom:15px">${subPicker()}</div>
+       <div class="f2">
+         <div class="fg"><label>Día del mes</label><input id="f-fdia" type="number" min="1" max="31" value="1" inputmode="numeric"></div>
+         <div class="fg"><label>Empieza en</label><select id="f-fdesde">
+           ${opts.map(m=>`<option value="${m}"${m===mAct?' selected':''}>${esc(mlab(m))}</option>`).join('')}</select></div>
+       </div>
+       <div class="fg"><label>Descripción</label><input id="f-t" placeholder="Ej. Netflix, alquiler, gimnasio" autocomplete="off"></div>
+       <div class="mini" style="margin:-6px 0 13px">Si el mes no llega a ese día (el 31 en febrero) se usa el último día del mes.</div>
+       <button class="btn" id="f-fgo">🔁 Crear gasto fijo</button>
+     </div>
+
+     ${act.length?`<div class="card">
+       <div class="ttl">Activos ahora</div>
+       ${act.map(f=>fila(f,true)).join('')}
+       <div class="row" style="border-top:1px solid rgba(255,255,255,.1);margin-top:6px;padding-top:12px">
+         <div class="ico" style="background:rgba(255,90,110,.14)">📅</div>
+         <div class="rn"><b>Total fijo al mes</b><span>${act.length} ${act.length===1?'gasto':'gastos'} · ${eur0(totAct*12)} al año</span></div>
+         <div class="ra" style="color:#ff8a97">${eur0(totAct)}</div></div>
+     </div>`:`<div class="card"><div class="mini">Todavía no tienes ningún gasto fijo. Créalo una vez arriba y se encargará solo.</div></div>`}
+
+     ${can.length?`<div class="card">
+       <div class="ttl">Cancelados</div>
+       <div class="mini" style="margin-bottom:8px">Ya no se cobran, pero siguen contando en los meses en que los pagaste.</div>
+       ${can.map(f=>fila(f,false)).join('')}
+     </div>`:''}
+    </div>`;
+  }
 
   const manual=ADD.modo==='manual';
   return `<div class="stag">${seg}
@@ -1144,6 +1250,14 @@ document.addEventListener('click',e=>{
     ask('¿Borrar «'+(g.t||g.s||g.c)+'» de '+eur(g.a)+'?',()=>{
       DB.borrados=DB.borrados||{};DB.borrados[g.id]=Date.now();
       DB.gastos=DB.gastos.filter(x=>x.id!==g.id);save();render();toast('Gasto borrado')},'Sí, borrar');return}
+  const fc=e.target.closest('[data-fcan]');
+  if(fc){const f=(DB.fijos||[]).find(x=>x.id===fc.dataset.fcan);if(!f)return;
+    ask('¿Cancelar «'+(f.t||f.s||f.c)+'» de '+eur0(f.a)+' al mes? Dejará de registrarse a partir del mes que viene, y lo pagado hasta ahora se queda en tus cuentas.',()=>{
+      f.hasta=mesHoy();f.u=Date.now();save();render('add');toast('🔁 Cancelado')},'Sí, cancelar');return}
+  const fr=e.target.closest('[data-frea]');
+  if(fr){const f=(DB.fijos||[]).find(x=>x.id===fr.dataset.frea);if(!f)return;
+    ask('¿Volver a activar «'+(f.t||f.s||f.c)+'»? Se registrará otra vez desde este mes; los meses que estuvo cancelado no se rellenan.',()=>{
+      f.hasta=null;f.desde=mesHoy();f.u=Date.now();save();generarFijos();render('add');toast('🔁 Activado de nuevo')},'Sí, activar');return}
   const rm=e.target.closest('[data-rmsub]');
   if(rm&&EDITC){syncEdit();EDITC.subs=EDITC.subs.filter(x=>x!==rm.dataset.rmsub);
     document.getElementById('sc').innerHTML='<button type="button" class="shbk" id="shbk">← Volver</button>'+catSheet();return}
@@ -1181,6 +1295,23 @@ document.addEventListener('click',e=>{
     if(DB.ingresos[mkey(d)]===undefined)DB.ingresos[mkey(d)]=0;
     save();if(navigator.vibrate)navigator.vibrate([10,40,14]);
     toast('✓ '+eur(a)+' guardado');SELMES=mkey(d);nav('meses');return}
+  /* --- crear un gasto fijo mensual --- */
+  if(id==='f-fgo'){
+    const a=parseFloat((document.getElementById('f-a').value||'').replace(',','.'));
+    if(!a||a<=0){toast('Pon un importe');return}
+    const dia=Math.min(31,Math.max(1,parseInt(document.getElementById('f-fdia').value,10)||1));
+    const desde=document.getElementById('f-fdesde').value||mesHoy();
+    const c=ADD.c, sb=ADD.s||ADD.c;
+    ensureCat(c,sb);
+    DB.fijos=DB.fijos||[];
+    DB.fijos.push({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
+      c:c,s:sb,t:(document.getElementById('f-t').value||'').trim(),
+      a:+a.toFixed(2),dia:dia,desde:desde,hasta:null,u:Date.now()});
+    save();
+    const n=generarFijos();
+    if(navigator.vibrate)navigator.vibrate([10,40,14]);
+    toast(n?'🔁 Creado · '+n+(n===1?' mes registrado':' meses registrados'):'🔁 Gasto fijo creado');
+    render('add');return}
   /* --- lote --- */
   if(id==='f-prev'){lotePrev();return}
   if(id==='f-lgo'){
@@ -1303,7 +1434,8 @@ async function ghEscribir(c,datos,sha){
 }
 
 function paquete(){return{v:1,gastos:DB.gastos||[],ingresos:DB.ingresos||{},cats:DB.cats||{},
-  icons:DB.icons||{},limites:DB.limites||{},borrados:DB.borrados||{},mig:+DB.mig||0,cfgU:+DB.cfgU||0}}
+  icons:DB.icons||{},limites:DB.limites||{},borrados:DB.borrados||{},fijos:DB.fijos||[],
+  mig:+DB.mig||0,cfgU:+DB.cfgU||0}}
 
 /* fusion: los movimientos se unen por id (gana el editado mas tarde);
    la configuracion la aporta el dispositivo que guardo mas recientemente */
@@ -1316,11 +1448,16 @@ function fundir(rem,loc){
   (loc.gastos||[]).forEach(g=>{if(!g||!g.id)return;const o=map.get(g.id);
     if(!o||(+g.u||0)>=(+o.u||0))map.set(g.id,g)});
   const gastos=[...map.values()].filter(g=>!(bor[g.id]&&bor[g.id]>=(+g.u||0)));
+  /* los fijos se unen por id, gana el que se toco mas tarde */
+  const fmap=new Map();
+  (rem.fijos||[]).forEach(f=>{if(f&&f.id)fmap.set(f.id,f)});
+  (loc.fijos||[]).forEach(f=>{if(!f||!f.id)return;const o=fmap.get(f.id);
+    if(!o||(+f.u||0)>=(+o.u||0))fmap.set(f.id,f)});
   const locGana=(+loc.cfgU||0)>=(+rem.cfgU||0);
   const viejo=locGana?rem:loc, nuevo=locGana?loc:rem;
   const une=k=>Object.assign({},viejo[k]||{},nuevo[k]||{});
   return{v:1,gastos:gastos,ingresos:une('ingresos'),cats:une('cats'),icons:une('icons'),
-    limites:une('limites'),borrados:bor,mig:Math.max(+rem.mig||0,+loc.mig||0),
+    limites:une('limites'),borrados:bor,fijos:[...fmap.values()],mig:Math.max(+rem.mig||0,+loc.mig||0),
     cfgU:Math.max(+rem.cfgU||0,+loc.cfgU||0)};
 }
 
@@ -1346,7 +1483,7 @@ async function sincronizar(manual,intento){
     const antes=JSON.stringify(loc), despues=JSON.stringify(fus);
     if(antes!==despues){
       DB.gastos=fus.gastos;DB.ingresos=fus.ingresos;DB.cats=fus.cats;DB.icons=fus.icons;
-      DB.limites=fus.limites;DB.borrados=fus.borrados;DB.mig=fus.mig;DB.cfgU=fus.cfgU;
+      DB.limites=fus.limites;DB.borrados=fus.borrados;DB.fijos=fus.fijos||[];DB.mig=fus.mig;DB.cfgU=fus.cfgU;
       try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}
     }
     if(!datos||despues!==JSON.stringify(datos)){
@@ -1355,6 +1492,7 @@ async function sincronizar(manual,intento){
     }else c.sha=sha;
     c.last=Date.now();syncPon(c);
     SYNCST='ok';
+    if(antes!==despues)generarFijos();
     if(antes!==despues&&!SHEETOPEN&&CUR!=='add')render();
     if(manual)toast('Sincronizado · '+fus.gastos.length+' movimientos');
   }catch(e){
@@ -1367,14 +1505,17 @@ async function sincronizar(manual,intento){
 }
 function syncSoon(){if(!syncCfg())return;clearTimeout(SYNCTM);SYNCTM=setTimeout(()=>sincronizar(false),2500)}
 window.addEventListener('online',()=>sincronizar(false));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)sincronizar(false)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){
+  /* al volver a la app puede haber cambiado de mes: se revisan los fijos */
+  if(generarFijos()&&!SHEETOPEN)render();
+  sincronizar(false)}});
 
 /* ============ init ============ */
 function boot(){
   /* restos de versiones anteriores */
   try{localStorage.removeItem('misgastos_lock')}catch(e){}
   try{sessionStorage.removeItem('restaurar')}catch(e){}
-  load();history.replaceState({v:'inicio',mes:null,sheet:0},'');render('inicio');
+  load();generarFijos();history.replaceState({v:'inicio',mes:null,sheet:0},'');render('inicio');
   if(syncCfg())sincronizar(false);
 }
 boot();

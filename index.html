@@ -1012,7 +1012,7 @@ function calendario(k){
     if(key<=hy){cont++;if(!v)sinGasto++}
     if(v&&(!top||v>top[1]))top=[d,v];
     celdas+=`<div class="cd ${lv?'l'+lv:''} ${key===hy?'hoy':''} ${key>hy?'fut':''}" data-dia="${key}">
-      <b>${d}</b><span>${v?kfmt(v):''}</span></div>`;
+      <b>${d}</b><span>${v?kfmt(v)+'€':''}</span></div>`;
   }
   const tot=Object.values(por).reduce((a,b)=>a+b,0);
   return `<div class="calh">${['L','M','X','J','V','S','D'].map(x=>`<span>${x}</span>`).join('')}</div>
@@ -1225,15 +1225,18 @@ function vAjustes(){
 }
 
 /* ============ buscador ============ */
-let BUS={q:'',c:'',desde:'',hasta:'',min:'',max:'',ord:'fecha'};
+let BUS={q:'',c:'',s:'',desde:'',hasta:'',min:'',max:'',ord:'fecha'};
 function vBuscar(){
   document.getElementById('htit').textContent='Buscar';
   document.getElementById('hsub').textContent='En todos tus movimientos';
   const cs=[...new Set(DB.gastos.map(g=>g.c))].sort((a,b)=>a.localeCompare(b,'es'));
+  /* subcategorias usadas de la categoria elegida (sin categoria no se muestran) */
+  const ss=BUS.c?[...new Set(DB.gastos.filter(g=>g.s&&g.c===BUS.c).map(g=>g.s))]:[].sort((a,b)=>a.localeCompare(b,'es'));
   return `<div class="stag">
    <div class="card">
      <div class="fg"><input id="bq" type="search" placeholder="Kebab, gasolina, Mercadona…" value="${esc(BUS.q)}" autocomplete="off" enterkeyhint="search"></div>
      <div class="chips in">${['',...cs].map(c=>`<div class="chip ${BUS.c===c?'on':''}" data-bc="${esc(c)}">${c?cicon(c)+' '+esc(c):'Todas'}</div>`).join('')}</div>
+     ${ss.length?`<div class="chips in">${['',...ss].map(x=>`<div class="chip ${BUS.s===x?'on':''}" data-bs="${esc(x)}">${x?esc(x):'Todas'}</div>`).join('')}</div>`:''}
      <div class="f2">
        <div class="fg"><label>Desde</label><input id="bd" type="date" value="${BUS.desde}"></div>
        <div class="fg"><label>Hasta</label><input id="bh" type="date" value="${BUS.hasta}"></div>
@@ -1256,6 +1259,7 @@ function bRes(){
   const pal=norm(BUS.q).split(/\s+/).filter(Boolean),mn=bNum(BUS.min),mx=bNum(BUS.max);
   let r=DB.gastos.filter(g=>{
     if(BUS.c&&g.c!==BUS.c)return false;
+    if(BUS.s&&g.s!==BUS.s)return false;
     if(BUS.desde&&g.d<BUS.desde)return false;
     if(BUS.hasta&&g.d>BUS.hasta)return false;
     if(mn!=null&&+g.a<mn)return false;
@@ -1476,7 +1480,9 @@ document.addEventListener('click',e=>{
     ADD.c=c;ADD.s=subList(c)[0];ADD.meta=ap.dataset.apartar;ADD.modo='rapido';nav('add');return}
   /* --- buscador --- */
   const bc=e.target.closest('[data-bc]');
-  if(bc){BUS.c=bc.dataset.bc;render('buscar',true);return}
+  if(bc){BUS.c=bc.dataset.bc;BUS.s='';render('buscar',true);return}
+  const bs=e.target.closest('[data-bs]');
+  if(bs){BUS.s=bs.dataset.bs;render('buscar',true);return}
   const bo=e.target.closest('[data-bord]');
   if(bo){BUS.ord=bo.dataset.bord;render('buscar',true);return}
   /* --- color de categoria --- */
@@ -1608,7 +1614,7 @@ document.addEventListener('click',e=>{
   /* --- toast, cabecera y buscador --- */
   if(id==='toast-acc'){const fn=TOASTFN;toastOff();if(fn)fn();return}
   if(id==='busb'){nav('buscar');return}
-  if(id==='b-clr'){BUS={q:'',c:'',desde:'',hasta:'',min:'',max:'',ord:'fecha'};render('buscar',true);return}
+  if(id==='b-clr'){BUS={q:'',c:'',s:'',desde:'',hasta:'',min:'',max:'',ord:'fecha'};render('buscar',true);return}
   /* --- confirmaciones --- */
   if(id==='ask-y'){const cb=ASKCB;ASKCB=null;closeSheet();if(cb)cb();return}
   if(id==='ask-n'){ASKCB=null;closeSheet();return}

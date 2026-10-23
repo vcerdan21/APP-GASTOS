@@ -1225,18 +1225,24 @@ function vAjustes(){
 }
 
 /* ============ buscador ============ */
-let BUS={q:'',c:'',s:'',desde:'',hasta:'',min:'',max:'',ord:'fecha'};
+/* c: categorias marcadas · s: subcategorias marcadas como "categoria␁sub" (vacio = todas) */
+const BSEP='\u0001';
+let BUS={q:'',c:[],s:[],desde:'',hasta:'',min:'',max:'',ord:'fecha'};
 function vBuscar(){
   document.getElementById('htit').textContent='Buscar';
   document.getElementById('hsub').textContent='En todos tus movimientos';
   const cs=[...new Set(DB.gastos.map(g=>g.c))].sort((a,b)=>a.localeCompare(b,'es'));
-  /* subcategorias usadas de la categoria elegida (sin categoria no se muestran) */
-  const ss=BUS.c?[...new Set(DB.gastos.filter(g=>g.s&&g.c===BUS.c).map(g=>g.s))]:[].sort((a,b)=>a.localeCompare(b,'es'));
+  /* subcategorias usadas de las categorias marcadas (sin ninguna marcada no se muestran) */
+  const ss=BUS.c.flatMap(c=>[...new Set(DB.gastos.filter(g=>g.s&&g.c===c).map(g=>g.s))]
+    .sort((a,b)=>a.localeCompare(b,'es')).map(x=>[c,x]));
+  const varias=BUS.c.length>1,ok=v=>v?'✓ ':'';
   return `<div class="stag">
    <div class="card">
      <div class="fg"><input id="bq" type="search" placeholder="Kebab, gasolina, Mercadona…" value="${esc(BUS.q)}" autocomplete="off" enterkeyhint="search"></div>
-     <div class="chips in">${['',...cs].map(c=>`<div class="chip ${BUS.c===c?'on':''}" data-bc="${esc(c)}">${c?cicon(c)+' '+esc(c):'Todas'}</div>`).join('')}</div>
-     ${ss.length?`<div class="chips in">${['',...ss].map(x=>`<div class="chip ${BUS.s===x?'on':''}" data-bs="${esc(x)}">${x?esc(x):'Todas'}</div>`).join('')}</div>`:''}
+     <div class="chips in" id="bcats"><div class="chip ${BUS.c.length?'':'on'}" data-bc="">Todas</div>${cs.map(c=>{const on=BUS.c.includes(c);
+       return `<div class="chip ${on?'on':''}" data-bc="${esc(c)}">${ok(on)}${cicon(c)} ${esc(c)}</div>`}).join('')}</div>
+     ${ss.length?`<div class="chips in" id="bsubs"><div class="chip ${BUS.s.length?'':'on'}" data-bs="">Todas</div>${ss.map(([c,x])=>{const k=c+BSEP+x,on=BUS.s.includes(k);
+       return `<div class="chip ${on?'on':''}" data-bs="${esc(k)}">${ok(on)}${varias?cicon(c)+' ':''}${esc(x)}</div>`}).join('')}</div>`:''}
      <div class="f2">
        <div class="fg"><label>Desde</label><input id="bd" type="date" value="${BUS.desde}"></div>
        <div class="fg"><label>Hasta</label><input id="bh" type="date" value="${BUS.hasta}"></div>
@@ -1258,8 +1264,9 @@ function bNum(x){const n=parseFloat(String(x||'').replace(',','.'));return isFin
 function bRes(){
   const pal=norm(BUS.q).split(/\s+/).filter(Boolean),mn=bNum(BUS.min),mx=bNum(BUS.max);
   let r=DB.gastos.filter(g=>{
-    if(BUS.c&&g.c!==BUS.c)return false;
-    if(BUS.s&&g.s!==BUS.s)return false;
+    if(BUS.c.length&&!BUS.c.includes(g.c))return false;
+    /* si de esta categoria hay subcategorias marcadas, solo esas; si no, todas las suyas */
+    if(BUS.s.length){const sc=BUS.s.filter(k=>k.split(BSEP)[0]===g.c);if(sc.length&&!sc.includes(g.c+BSEP+(g.s||'')))return false}
     if(BUS.desde&&g.d<BUS.desde)return false;
     if(BUS.hasta&&g.d>BUS.hasta)return false;
     if(mn!=null&&+g.a<mn)return false;
@@ -1282,6 +1289,9 @@ function bRes(){
   if(r.length>vis.length)h+=`<div class="mini" style="margin-top:10px">Se muestran los 300 primeros. Afina la búsqueda para ver el resto.</div>`;
   return h;
 }
+/* repinta el buscador sin perder dónde estaban deslizadas las filas de chips */
+function bRender(){const sx=['bcats','bsubs'].map(i=>document.getElementById(i)?.scrollLeft||0);
+  render('buscar',true);['bcats','bsubs'].forEach((i,n)=>{const e=document.getElementById(i);if(e)e.scrollLeft=sx[n]})}
 function bPinta(){const e=document.getElementById('bres');if(e){e.innerHTML=bRes()}}
 document.addEventListener('input',e=>{
   const m={bq:'q',bmin:'min',bmax:'max',bd:'desde',bh:'hasta'}[e.target.id];
@@ -1480,9 +1490,16 @@ document.addEventListener('click',e=>{
     ADD.c=c;ADD.s=subList(c)[0];ADD.meta=ap.dataset.apartar;ADD.modo='rapido';nav('add');return}
   /* --- buscador --- */
   const bc=e.target.closest('[data-bc]');
-  if(bc){BUS.c=bc.dataset.bc;BUS.s='';render('buscar',true);return}
+  /* toca para marcar, vuelve a tocar para desmarcar; «Todas» quita el filtro */
+  if(bc){const c=bc.dataset.bc;
+    if(!c){BUS.c=[];BUS.s=[]}
+    else if(BUS.c.includes(c)){BUS.c=BUS.c.filter(x=>x!==c);BUS.s=BUS.s.filter(k=>k.split(BSEP)[0]!==c)}
+    else BUS.c=[...BUS.c,c];
+    bRender();return}
   const bs=e.target.closest('[data-bs]');
-  if(bs){BUS.s=bs.dataset.bs;render('buscar',true);return}
+  if(bs){const k=bs.dataset.bs;
+    BUS.s=!k?[]:(BUS.s.includes(k)?BUS.s.filter(x=>x!==k):[...BUS.s,k]);
+    bRender();return}
   const bo=e.target.closest('[data-bord]');
   if(bo){BUS.ord=bo.dataset.bord;render('buscar',true);return}
   /* --- color de categoria --- */
@@ -1614,7 +1631,7 @@ document.addEventListener('click',e=>{
   /* --- toast, cabecera y buscador --- */
   if(id==='toast-acc'){const fn=TOASTFN;toastOff();if(fn)fn();return}
   if(id==='busb'){nav('buscar');return}
-  if(id==='b-clr'){BUS={q:'',c:'',s:'',desde:'',hasta:'',min:'',max:'',ord:'fecha'};render('buscar',true);return}
+  if(id==='b-clr'){BUS={q:'',c:[],s:[],desde:'',hasta:'',min:'',max:'',ord:'fecha'};render('buscar',true);return}
   /* --- confirmaciones --- */
   if(id==='ask-y'){const cb=ASKCB;ASKCB=null;closeSheet();if(cb)cb();return}
   if(id==='ask-n'){ASKCB=null;closeSheet();return}

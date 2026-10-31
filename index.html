@@ -1061,7 +1061,6 @@ function vAdd(){
   if(!ADD.c||!DB.cats[ADD.c])ADD.c=cs[0]||'Extra';
   if(!ADD.s||!subList(ADD.c).includes(ADD.s))ADD.s=subList(ADD.c)[0];
   const subsAll=[...new Set(Object.values(DB.cats).flat())].sort();
-  const frec=[...new Map(DB.gastos.slice(-90).reverse().map(g=>[g.t+'|'+g.c,g])).values()].slice(0,6);
   const seg=`<div class="seg">
      <button type="button" data-modo="rapido" class="${ADD.modo==='rapido'?'on':''}">⚡ Rápido</button>
      <button type="button" data-modo="manual" class="${ADD.modo==='manual'?'on':''}">✍️ Manual</button>
@@ -1108,13 +1107,34 @@ function vAdd(){
      </div>
      <button class="btn" id="f-go">Guardar gasto</button>
    </div>
-   ${frec.length?`<div class="card"><div class="ttl">Repetir un gasto reciente</div>
-     ${frec.map(g=>`<div class="row tap" data-rep='${esc(JSON.stringify({c:g.c,s:g.s,t:g.t,a:g.a}))}'>
-       <div class="ico" style="background:${ccolor(g.c)}22">${cicon(g.c)}</div>
-       <div class="rn"><b>${esc(g.t||g.s)}</b><span>${esc(g.c)}</span></div>
-       <div class="ra">${eur(g.a)}</div></div>`).join('')}</div>`:''}
+   <div id="rec-box">${recientesHTML(ADD.c)}</div>
   </div>`;
 }
+
+/* gastos habituales de una categoria: los que mas repites (ultimos 6 meses), y a igualdad el mas reciente.
+   Se agrupan por descripcion + subcategoria y se propone el ultimo importe que pusiste. */
+function recientesHTML(cat){
+  if(!cat)return '';
+  const lim=new Date();lim.setMonth(lim.getMonth()-6);const desde=lim.toISOString().slice(0,10);
+  const grp=new Map();
+  DB.gastos.forEach(g=>{
+    if(g.c!==cat)return;
+    const k=norm(g.t||'')+'|'+(g.s||'');
+    const cur=grp.get(k)||{n:0,g:null};
+    if((g.d||'')>=desde)cur.n++;
+    if(!cur.g||(g.d||'')>(cur.g.d||'')||((g.d||'')===(cur.g.d||'')&&(+g.u||0)>(+cur.g.u||0)))cur.g=g;
+    grp.set(k,cur);
+  });
+  const top=[...grp.values()].sort((a,b)=>b.n-a.n||(b.g.d||'').localeCompare(a.g.d||'')).slice(0,6);
+  if(!top.length)return `<div class="card"><div class="ttl">Habituales en ${cicon(cat)} ${esc(cat)}</div>
+     <div class="mini" style="padding:6px 0">Aún no has apuntado nada en esta categoría.</div></div>`;
+  return `<div class="card"><div class="ttl">Habituales en ${cicon(cat)} ${esc(cat)}</div>
+     ${top.map(({n,g})=>`<div class="row tap" data-rep='${esc(JSON.stringify({c:g.c,s:g.s,t:g.t,a:g.a}))}'>
+       <div class="ico" style="background:${ccolor(g.c)}22">${cicon(g.c)}</div>
+       <div class="rn"><b>${esc(g.t||g.s||g.c)}</b><span>${g.s&&g.s!==g.c&&g.t?esc(g.s)+' · ':''}${n>1?n+' veces':'última '+(g.d||'').split('-').reverse().slice(0,2).join('/')}</span></div>
+       <div class="ra">${eur(g.a)}</div></div>`).join('')}</div>`;
+}
+function pintaRecientes(){const b=document.getElementById('rec-box');if(b){b.innerHTML=recientesHTML(ADD.c);anim()}}
 
 /* ---- escritura en lote ---- */
 function parseLote(txt,defDate,defCat){
@@ -1517,6 +1537,7 @@ document.addEventListener('click',e=>{
     document.getElementById('pk-c').innerHTML=catPicker();
     document.getElementById('pk-s').innerHTML=subPicker();
     document.getElementById('pk-m').innerHTML=metaPicker();
+    pintaRecientes();
     if(navigator.vibrate)navigator.vibrate(6);return}
   const ps=e.target.closest('[data-ps]');
   if(ps){ADD.s=ps.dataset.ps;document.getElementById('pk-s').innerHTML=subPicker();
@@ -1549,7 +1570,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
   if(e.target.id==='f-c'){const v=e.target.value.trim();if(DB.cats[v]){ADD.c=v;ADD.s=subList(v)[0];
     const fs=document.getElementById('f-s');if(fs&&!fs.value)fs.value=ADD.s;
-    const pm=document.getElementById('pk-m');if(pm)pm.innerHTML=metaPicker()}}
+    const pm=document.getElementById('pk-m');if(pm)pm.innerHTML=metaPicker();pintaRecientes()}}
   if(e.target.dataset.ing!==undefined){DB.ingresos[e.target.dataset.ing]=+e.target.value||0;save();toast('Ingresos actualizados')}
   if(e.target.dataset.lim!==undefined){const c=e.target.dataset.lim,v=Math.max(0,+e.target.value||0);
     if(v>0)DB.limites[c]=v;else delete DB.limites[c];

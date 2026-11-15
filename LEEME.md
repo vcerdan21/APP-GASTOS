@@ -38,24 +38,27 @@ Si quieres un `.apk` de verdad, pega esa misma URL en [pwabuilder.com](https://w
 
 ## Qué hace
 
-- **Inicio** — balance del año, gasto del mes, donut por categoría, evolución mensual, últimos movimientos.
-- **Comparar** — gastos vs ingresos, top categorías en el tiempo, matriz categoría × mes (toca una fila para el detalle) y variación mes a mes.
-- **Meses** — elige mes, ves KPIs, reparto por categoría y todos los movimientos agrupados por día. Toca un movimiento para borrarlo.
+- **Inicio** — lo gastado este mes y cómo va frente al mes anterior (acumulado día a día), balance total o por año, reparto por categoría, gasto mes a mes, límites y los 10 últimos movimientos. Al tocar una categoría se abre su gasto de cada día del mes, con sus subcategorías y movimientos de ese mes.
+- **Comparar** — gastos frente a ingresos, las cinco categorías con más gasto, ahorro y sobrante, ahorro acumulado y la tabla categoría × mes (cada fila en el color de su categoría; toca una fila para ver su histórico). Con más de un año de datos aparece un selector Todo / año.
 - **+** — tres modos:
-  - **⚡ Rápido** — importe, botones +1/+5/+10/+20/+50 y categoría/subcategoría en botones grandes (ya no hay desplegables). También "repetir un gasto reciente".
-  - **✍️ Manual** — escribes la categoría y la subcategoría a mano, con autocompletado. Si no existen, se crean solas al guardar.
-  - **📝 Varios** — pegas o escribes varias líneas de golpe (`tabaco 6,25`, `gasolina 50 repostaje`, `14/07 comida fuera 12,50 kebab`), pulsas *Previsualizar* y las guarda todas. El último número de la línea es el importe, la fecha inicial es opcional y la categoría se detecta por el nombre.
-- **Ajustes** — ingresos por mes, editor de categorías (renombrar, cambiar icono, añadir/quitar subcategorías, eliminar), exportar copia JSON, exportar CSV para Excel, importar copia y restaurar el histórico original.
+  - **Gasto** — todo en una pantalla, sin deslizar: importe con teclado propio, categorías en rejilla (primero las que más usas), subcategoría, fecha y nota. Arriba salen tus gastos habituales de esa categoría para repetirlos de un toque. En ordenador el importe se escribe con el teclado y se guarda con Intro. Las categorías y subcategorías nuevas se crean con «＋ Nueva».
+  - **Varios** — pegas o escribes varias líneas de golpe (`tabaco 6,25`, `gasolina 50 repostaje`, `14/07 comida fuera 12,50 kebab`), pulsas *Previsualizar* y las guarda todas. El último número de la línea es el importe, la fecha inicial es opcional y la categoría se detecta por el nombre.
+  - **Fijos** — gastos que se apuntan solos cada mes. Se crean desde «Nuevo gasto fijo» y se pueden cancelar o reactivar.
+- **Meses** — elige mes y ves lo gastado, el reparto por categoría, el calendario (en azules: más intenso, más gasto), las categorías y todos los movimientos, que se despliegan con la flecha. Toca un movimiento para editarlo.
+- **Ajustes** — ingresos por mes, editor de categorías, límites, metas de ahorro, sincronización, exportar copia JSON, exportar CSV para Excel e importar copia.
+- **Buscar** (lupa) — busca en todos los movimientos por texto, categoría, fechas e importe.
 
 ## Navegación y botón atrás
 
-El **botón atrás del móvil navega dentro de la app**: cierra la ficha de detalle de una categoría o vuelve a la pestaña anterior, en lugar de salirse de la web. Solo sale de la app si pulsas atrás estando en Inicio. Las fichas de detalle llevan además un botón **← Volver**.
+Las cinco pestañas se **deslizan de lado a lado con el dedo**, en el orden de la barra de abajo. En ordenador hay barra lateral y se cambia también con las flechas ← →.
 
-Los diálogos del navegador (`prompt`/`confirm`) se han sustituido por paneles propios: crear categoría, crear subcategoría, añadir mes y confirmar borrados.
+El **botón atrás del móvil** cierra el panel que esté abierto o vuelve a Inicio; desde Inicio sale de la app.
 
 ## Gráficos
 
-Todos los gráficos llevan leyenda: nombre de la serie, su color y el total acumulado. Las líneas tienen eje vertical en € (`k` = miles) y los meses rotulados debajo; tocando un punto sale su valor exacto. Las barras de evolución mensual muestran la cifra encima de cada barra.
+Se dibujan al ancho real de la pantalla (móvil u ordenador). La fila de encima de cada gráfico muestra el total; al **tocar un punto** (o pasar el ratón) muestra los valores de ese punto, sin tapar el dibujo. Manteniendo pulsado un instante y arrastrando se recorre el gráfico. Deslizar sobre un gráfico cambia de pestaña como en cualquier otro sitio.
+
+En el gráfico de las cinco categorías, si una es al menos 3 veces mayor que el resto se mide en un **segundo eje a la derecha** (lleva la etiqueta «eje dcho.») para que las demás no queden aplastadas.
 
 ## Datos
 

@@ -177,6 +177,35 @@ h1{margin:0;font-family:var(--fd);font-size:29px;font-weight:700;letter-spacing:
 .lgi .e{color:var(--tx3);font-variant-numeric:tabular-nums}
 .lgi .dsh{width:14px;height:0;border-top:2px dashed currentColor;flex:0 0 14px}
 
+/* grafico de circulo (Comparar) */
+.piew{display:flex;flex-direction:column;gap:14px}
+.pie{width:min(250px,70vw);aspect-ratio:1;margin:2px auto 0;flex:0 0 auto}
+.pie svg{width:100%;height:100%;display:block;overflow:visible}
+.pie path{stroke:var(--s1);stroke-width:1.5;stroke-linejoin:round;cursor:pointer;transition:opacity .25s}
+.pie.sel .pc{opacity:.22}
+.pie .pexp{transform-origin:120px 120px;animation:pexp .4s var(--ease)}
+@keyframes pexp{from{transform:scale(.88)}to{transform:scale(1)}}
+.pie text{font-size:16px;pointer-events:none;text-anchor:middle;dominant-baseline:central;transition:opacity .25s}
+.pleg{min-width:0;flex:1}
+.ptot{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.ptot b{font-family:var(--fd);font-size:24px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.pdh{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.pdh .rn b{font-size:15.5px}
+.psr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.psr:last-of-type{border-bottom:0}
+.psr .dot{width:12px;height:12px;flex:0 0 12px;border-radius:4px}
+.psr .n{flex:1;min-width:0;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psr .v{font-weight:700;font-variant-numeric:tabular-nums;font-size:13.5px;white-space:nowrap}
+.psr .p{font-size:12px;color:var(--tx3);font-weight:600;width:40px;text-align:right;font-variant-numeric:tabular-nums}
+/* selector de categorias del grafico de evolucion */
+.pick.csel{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px 10px;padding:0 16px;scrollbar-width:none;overscroll-behavior-x:contain;gap:6px}
+.pick.csel::-webkit-scrollbar{display:none}
+.csel .pk{flex:0 0 auto;height:32px;padding:0 12px;border-radius:99px;font-size:12.5px;gap:6px;background:none}
+.csel .pk.on{background:color-mix(in srgb,var(--pc,#fff) 16%,var(--s2))}
+.csel .pk .dot{width:8px;height:8px;flex:0 0 8px}
+.csel .pk.ac{color:var(--tx3);border-style:dashed}
+.csel .pk.ac.on{color:var(--tx);border-style:solid;border-color:var(--tx2);background:var(--s2)}
+
 /* tabla comparativa */
 .tw{overflow-x:auto;margin:0 -16px;padding:0 16px;scrollbar-width:none;overscroll-behavior-x:contain}.tw::-webkit-scrollbar{display:none}
 table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:430px}
@@ -382,6 +411,9 @@ nav .fab:active{transform:scale(.93)}
   .chips{margin-inline:0;padding-inline:0;flex-wrap:wrap}
   .chips.in{margin:0 0 12px}
   .tw{margin:0;padding:0}
+  .piew{flex-direction:row;align-items:flex-start;gap:26px}
+  .pie{width:250px;margin:0}
+  .pick.csel{flex-wrap:wrap;margin:0 0 12px;padding:0;overflow:visible}
   td:first-child,th:first-child{left:0}
   .cal{gap:6px}
   /* añadir gasto */
@@ -900,6 +932,71 @@ function generarFijos(){
   return n;
 }
 
+/* ============ grafico de circulo: reparto del periodo y, al tocar, sus subcategorias ============ */
+let PIESEL=null;
+/* t>0 aclara hacia blanco, t<0 oscurece hacia negro */
+function tono(hex,t){const n=parseInt(String(hex).slice(1,7),16),c=[n>>16&255,n>>8&255,n&255];
+  return '#'+c.map(v=>Math.round(t>=0?v+(255-v)*t:v*(1+t)).toString(16).padStart(2,'0')).join('')}
+function tonos(hex,n){if(n<=1)return[hex];return Array.from({length:n},(_,i)=>tono(hex,-0.34+0.84*i/(n-1)))}
+function sector(r,a0,a1){const C=120,P=v=>v.toFixed(2);
+  if(a1-a0>=Math.PI*2-1e-4)return `M${C} ${C-r}A${r} ${r} 0 1 1 ${C} ${C+r}A${r} ${r} 0 1 1 ${C} ${C-r}Z`;
+  const x0=C+r*Math.cos(a0),y0=C+r*Math.sin(a0),x1=C+r*Math.cos(a1),y1=C+r*Math.sin(a1);
+  return `M${C} ${C}L${P(x0)} ${P(y0)}A${r} ${r} 0 ${a1-a0>Math.PI?1:0} 1 ${P(x1)} ${P(y1)}Z`}
+function subsDe(gs,c){const o={};gs.filter(g=>g.c===c).forEach(g=>{const s=g.s||c;o[s]=(o[s]||0)+(+g.a||0)});
+  return Object.entries(o).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1])}
+function pieCard(gs,tit,nMeses){
+  const cats=byCat(gs).filter(([,v])=>v>0),tot=sum(gs);
+  if(!cats.length)return `<div class="card c12"><div class="ttl">${esc(tit)}</div><div class="empty">Sin gastos en este periodo</div></div>`;
+  if(PIESEL&&!cats.some(([c])=>c===PIESEL))PIESEL=null;
+  const R=100,RS=114,C=120;
+  let a=-Math.PI/2,svg='',txt='',exp='';
+  cats.forEach(([c,v])=>{
+    const da=v/tot*Math.PI*2,a1=a+da,col=ccolor(c);
+    if(c===PIESEL){
+      const ss=subsDe(gs,c),ts=tonos(col,ss.length);let b=a;
+      exp=`<g class="pexp" data-pie="${esc(c)}">${ss.map(([s,sv],i)=>{const b1=b+sv/v*da,p=`<path d="${sector(RS,b,b1)}" fill="${ts[i]}"/>`;b=b1;return p}).join('')}</g>`;
+    }else{
+      svg+=`<path class="pc" d="${sector(R,a,a1)}" fill="${col}" data-pie="${esc(c)}"/>`;
+      if(da>=Math.PI*2*0.06){const m=(a+a1)/2;
+        txt+=`<text class="pc" x="${(C+R*.64*Math.cos(m)).toFixed(1)}" y="${(C+R*.64*Math.sin(m)).toFixed(1)}">${cicon(c)}</text>`}
+    }
+    a=a1;
+  });
+  let leg;
+  if(PIESEL){
+    const c=PIESEL,v=cats.find(x=>x[0]===c)[1],col=ccolor(c),ss=subsDe(gs,c),ts=tonos(col,ss.length);
+    leg=`<div class="pdh"><div class="ico sm" style="background:${col}22">${cicon(c)}</div>
+        <div class="rn"><b>${esc(c)}</b><span>${(v/tot*100).toFixed(v/tot<.1?1:0)} % del total, ${eur0(v/Math.max(1,nMeses))} al mes</span></div>
+        <div class="ra">${eur0(v)}</div></div>
+      ${ss.map(([s,sv],i)=>`<div class="psr"><i class="dot" style="background:${ts[i]}"></i><span class="n">${esc(s)}</span>
+        <span class="v">${eur0(sv)}</span><span class="p">${(sv/v*100).toFixed(0)} %</span></div>`).join('')}`;
+  }else{
+    leg=`<div class="ptot"><span class="lab">Total gastado</span><b>${eur0(tot)}</b></div>
+      <div class="lgc">${cats.map(([c,v])=>`<div class="lc" data-pie="${esc(c)}" style="--lcc:${ccolor(c)}"><i class="dot" style="background:${ccolor(c)}"></i>
+        <span class="n">${esc(c)}</span><span class="p">${(v/tot*100).toFixed(0)}%</span></div>`).join('')}</div>
+      <div class="mini" style="margin-top:10px">Toca una categoría para verla dividida en sus subcategorías.</div>`;
+  }
+  return `<div class="card c12"><div class="ttl">${esc(tit)}</div>
+    <div class="piew"><div class="pie ${PIESEL?'sel':''}"><svg viewBox="0 0 240 240" role="img" aria-label="Reparto del gasto por categoría">${svg}${txt}${exp}</svg></div>
+    <div class="pleg">${leg}</div></div></div>`;
+}
+/* categorias elegidas para el grafico de evolucion: null = las cinco con mas gasto */
+let CMPTOP=null,CMPTOP5=[];
+try{const x=JSON.parse(localStorage.getItem('misgastos_cmptop'));if(Array.isArray(x))CMPTOP=x}catch(e){}
+function guardaTop(){try{CMPTOP==null?localStorage.removeItem('misgastos_cmptop'):localStorage.setItem('misgastos_cmptop',JSON.stringify(CMPTOP))}catch(e){}}
+function repintaCmp(){pinta('comparar',true);anim()}
+document.addEventListener('click',e=>{
+  const p=e.target.closest('[data-pie]');
+  if(p){const c=p.dataset.pie;PIESEL=(!c||c===PIESEL)?null:c;repintaCmp();if(navigator.vibrate)navigator.vibrate(5);return}
+  if(e.target.closest('.pie')){if(PIESEL){PIESEL=null;repintaCmp()}return}
+  const t=e.target.closest('[data-ctop]');
+  if(t){const k=t.dataset.ctop;
+    if(k==='__top')CMPTOP=null;
+    else if(k==='__none')CMPTOP=[];
+    else{const s=CMPTOP?CMPTOP.slice():CMPTOP5.slice();CMPTOP=s.includes(k)?s.filter(x=>x!==k):s.concat([k])}
+    guardaTop();repintaCmp();if(navigator.vibrate)navigator.vibrate(5);return}
+});
+
 /* ============ vistas ============ */
 let SELMES=null, BALSEL=null, CMPSEL='todo', MOVOPEN=false;
 let ADD={c:null,s:null,modo:'rapido',imp:'',t:'',fecha:null,meta:'',lote:''}, LOTE=null, EDITC=null, ASKCB=null;
@@ -1022,7 +1119,9 @@ function vComparar(){
   const ahos=ms.map(k=>sum(gmA(k)));
   const orden=cats.map(c=>[c,M[c].reduce((a,b)=>a+b,0)]).sort((a,b)=>b[1]-a[1]);
   const maxCell=Math.max(1,...cats.flatMap(c=>M[c]));
-  const top=orden.slice(0,5).map(([c])=>({name:c,col:ccolor(c),vals:M[c]}));
+  CMPTOP5=orden.slice(0,5).map(([c])=>c);
+  const elegidas=CMPTOP?orden.map(([c])=>c).filter(c=>CMPTOP.includes(c)):CMPTOP5;
+  const top=elegidas.map(c=>({name:c,col:ccolor(c),vals:M[c]}));
   const ing=ms.map(k=>+DB.ingresos[k]||0);
   const sobr=ms.map((k,i)=>ing[i]-tots[i]-ahos[i]);
   const totAho=ahos.reduce((a,b)=>a+b,0), totSob=sobr.reduce((a,b)=>a+b,0), totIng=ing.reduce((a,b)=>a+b,0);
@@ -1039,14 +1138,20 @@ function vComparar(){
   return hd('Comparar',CMPSEL==='todo'?'Todos tus gastos, mes a mes':'Tus gastos de '+CMPSEL+', mes a mes')+
   (years.length>1?`<div class="chips"><div class="chip ${CMPSEL==='todo'?'on':''}" data-cmp="todo">Todo</div>${years.map(y=>`<div class="chip ${CMPSEL===y?'on':''}" data-cmp="${y}">${y}</div>`).join('')}</div>`:'')+
   `<div class="stag">
+   ${pieCard(DB.gastos.filter(g=>!esAh(g)&&en.has(g.m||mkey(g.d))),CMPSEL==='todo'?(years.length===1?'En qué se ha ido '+years[0]:'En qué se ha ido todo'):'En qué se ha ido '+CMPSEL,ms.length)}
    <div class="card">
      <div class="ttl">Gastos frente a ingresos</div>
      ${lineChart([{col:'#ff5a6e',vals:tots,name:'Gastos'},{col:'#00e08f',vals:ing,name:'Ingresos'}],lab,{dif:'Balance',unEje:true,aria:'Gastos e ingresos por mes'})}
    </div>
 
    <div class="card">
-     <div class="ttl">Tus cinco categorías con más gasto</div>
-     ${top.length?lineChart(top,lab,{aria:'Evolución de las cinco categorías con más gasto'}):'<div class="empty">Sin datos todavía</div>'}
+     <div class="ttl">${CMPTOP?'Categorías mes a mes':'Tus cinco categorías con más gasto'}</div>
+     ${orden.length?`<div class="pick csel">
+       <button type="button" class="pk ac ${CMPTOP?'':'on'}" data-ctop="__top"><span>Top 5</span></button>
+       <button type="button" class="pk ac ${CMPTOP&&!elegidas.length?'on':''}" data-ctop="__none"><span>Ninguna</span></button>
+       ${orden.map(([c])=>{const col=ccolor(c);return `<button type="button" class="pk ${elegidas.includes(c)?'on':''}" data-ctop="${esc(c)}" style="--pc:${col}"><i class="dot" style="background:${col}"></i><span>${esc(c)}</span></button>`}).join('')}
+     </div>`:''}
+     ${top.length?lineChart(top,lab,{aria:'Evolución mensual de las categorías elegidas'}):`<div class="empty">${orden.length?'Elige arriba qué categorías quieres ver':'Sin datos todavía'}</div>`}
    </div>
 
    <div class="card">
